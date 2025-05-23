@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hvac-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=postgresql://hvac:hvac@db:5432/hvacdb
+    depends_on:
+      - db
+
+  db:
+    image: postgres:14
+    container_name: hvac-db
+    environment:
+      POSTGRES_USER: hvac
+      POSTGRES_PASSWORD: hvac
+      POSTGRES_DB: hvacdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

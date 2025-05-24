@@ -1,4 +1,3 @@
-> Муж:
 import { useEffect, useState } from "react"
 import API from "../../api/axios"
 
@@ -120,7 +119,6 @@ export default function MaterialsPage() {
                 <tr>
                   <th className="p-2 border">№ заказа</th>
 
-> Муж:
 <th className="p-2 border">Материал</th>
                   <th className="p-2 border">Кол-во</th>
                   <th className="p-2 border">Статус</th>
@@ -145,9 +143,34 @@ export default function MaterialsPage() {
       )}
 
       {tab === "mine" && (
-        <div className="text-gray-600">Здесь будут выданные материалы</div>
-      )}
-    </div>
-  )
+  <div className="space-y-4">
+    {requests.length === 0 ? (
+      <p className="text-gray-500">Нет выданных материалов</p>
+    ) : (
+      <table className="w-full text-sm border">
+        <thead className="bg-gray-100 text-left">
+          <tr>
+            <th className="p-2 border">№ заказа</th>
+            <th className="p-2 border">Материал</th>
+            <th className="p-2 border">Кол-во</th>
+            <th className="p-2 border">Статус</th>
+          </tr>
+        </thead>
+        <tbody>
+          {requests
+            .filter(r => r.status === "issued")
+            .map(m => (
+              <tr key={m.id} className="border-t">
+                <td className="p-2 border">{m.order_id}</td>
+                <td className="p-2 border">{m.material}</td>
+                <td className="p-2 border">{m.quantity}</td>
+                <td className="p-2 border">Выдано</td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+)
 }
 

@@ -1,10 +1,12 @@
+> Муж:
 import { useEffect, useState } from "react"
 import API from "../../api/axios"
 
 export default function MaterialsPage() {
   const [tab, setTab] = useState("order")
   const [orders, setOrders] = useState([])
-  const [formData, setFormData] = useState({}) // orderId → { material, quantity }
+  const [formData, setFormData] = useState({})
+  const [requests, setRequests] = useState([])
 
   const tabClass = (name) =>
     `px-3 pb-1 border-b-2 transition ${tab === name
@@ -15,10 +17,19 @@ export default function MaterialsPage() {
     if (tab === "order") {
       API.get("/orders/me")
         .then(res => {
-          const inProgress = res.data.filter(o => o.status === "in_progress")
-          setOrders(inProgress)
+          const active = res.data.filter(o => o.status === "in_progress")
+          setOrders(active)
         })
         .catch(() => alert("Ошибка загрузки заказов"))
+    }
+
+    if (tab === "pending") {
+      API.get("/material_requests/my")
+        .then(res => {
+          const filtered = res.data.filter(r => r.status === "placed" || r.status === "approved")
+          setRequests(filtered)
+        })
+        .catch(() => alert("Ошибка загрузки заявок"))
     }
   }, [tab])
 
@@ -34,15 +45,13 @@ export default function MaterialsPage() {
 
   const submitRequest = async (orderId) => {
     const data = formData[orderId]
-    if (!data!data.quantity) {
+    if (!data⠵⠟⠞⠟⠟⠞⠵⠵⠞⠺⠟⠵⠟⠞⠞⠺⠺⠺!data.quantity) {
       alert("Укажите материал и количество")
       return
     }
 
-    // TODO: заменить на реальный API
     console.log("Заявка:", { orderId, material: data.material, quantity: data.quantity })
     alert("Заявка отправлена (в консоль)")
-
     setFormData(prev => ({ ...prev, [orderId]: { material: "", quantity: "" } }))
   }
 
@@ -102,7 +111,37 @@ export default function MaterialsPage() {
       )}
 
       {tab === "pending" && (
-        <div className="text-gray-600">Здесь будет таблица заявок в статусе "Размещён" или "Одобрен"</div>
+        <div className="space-y-4">
+          {requests.length === 0 ? (
+            <p className="text-gray-500">Нет заявок, ожидающих выдачи</p>
+          ) : (
+            <table className="w-full text-sm border">
+              <thead className="bg-gray-100 text-left">
+                <tr>
+                  <th className="p-2 border">№ заказа</th>
+
+> Муж:
+<th className="p-2 border">Материал</th>
+                  <th className="p-2 border">Кол-во</th>
+                  <th className="p-2 border">Статус</th>
+                </tr>
+              </thead>
+              <tbody>
+                {requests.map(req => (
+                  <tr key={req.id} className="border-t">
+                    <td className="p-2 border">{req.order_id}</td>
+                    <td className="p-2 border">{req.material}</td>
+                    <td className="p-2 border">{req.quantity}</td>
+                    <td className="p-2 border">
+                      {req.status === "placed" && "Размещён"}
+                      {req.status === "approved" && "Одобрен"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       )}
 
       {tab === "mine" && (
@@ -111,3 +150,4 @@ export default function MaterialsPage() {
     </div>
   )
 }
+

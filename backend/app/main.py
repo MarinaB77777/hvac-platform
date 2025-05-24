@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from app.api import material_requests
+app.include_router(material_requests.router)
 
 app = FastAPI()
 

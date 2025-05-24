@@ -10,13 +10,14 @@ export default function HVACLayout() {
 
   return (
     <div className="p-4">
-      <nav className="flex gap-4 mb-6 border-b pb-2">
-        <Link to="/hvac/orders" className="text-blue-600 hover:underline">Новые заказы</Link>
-        <Link to="/hvac/my-orders" className="text-blue-600 hover:underline">Мои заказы</Link>
-        <Link to="/hvac/materials" className="text-blue-600 hover:underline">Расходные материалы</Link>
-        <button onClick={logout} className="ml-auto text-red-600 hover:underline">Выйти</button>
-      </nav>
-      <Outlet />
+    <nav className="flex gap-4 mb-6 border-b pb-2">
+      <Link to="/hvac/orders" className="text-blue-600 hover:underline">Новые заказы</Link>
+      <Link to="/hvac/my-orders" className="text-blue-600 hover:underline">Мои заказы</Link>
+      <Link to="/hvac/materials" className="text-blue-600 hover:underline">Расходные материалы</Link>
+      <Link to="/hvac/free-orders" className="text-blue-600 hover:underline">Свободные заказы</Link>
+      <button onClick={logout} className="ml-auto text-red-600 hover:underline">Выйти</button>
+    </nav>
+    <Outlet />
     </div>
   )
 }

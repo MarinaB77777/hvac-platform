@@ -38,3 +38,5 @@ app.include_router(analytics.router)
 
 from app.api import hvac_users
 app.include_router(hvac_users.router)
+from app.api import warehouse_api
+app.include_router(warehouse_api.router)

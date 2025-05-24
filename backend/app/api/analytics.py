@@ -1,22 +1,25 @@
-from fastapi import APIRouter, Depends
-from app.services.auth import get_current_user
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 from datetime import datetime
-from app.api.order import orders
-from app.api.hvac_materials import hvac_materials
-from app.api.warehouse import material_requests
+from app.db import get_db
+from app.services.auth import get_current_user
+from app.models.order import Order
+from app.models.material_request import MaterialRequest
 
 router = APIRouter()
 
 @router.get("/analytics/hvac")
-def hvac_analytics(user=Depends(get_current_user)):
+def hvac_analytics(user=Depends(get_current_user), db: Session = Depends(get_db)):
     if user["role"] != "manager":
-        return {"error": "Only manager can view HVAC analytics"}
+        raise HTTPException(status_code=403, detail="Only manager can view HVAC analytics")
 
+    orders = db.query(Order).all()
     summary = {}
+
     for order in orders:
-        if not order["hvac_id"]:
+        if not order.hvac_id:
             continue
-        uid = order["hvac_id"]
+        uid = order.hvac_id
         if uid not in summary:
             summary[uid] = {
                 "orders": 0,
@@ -26,15 +29,14 @@ def hvac_analytics(user=Depends(get_current_user)):
                 "materials_cost": 0
             }
         summary[uid]["orders"] += 1
-        if order["status"] == "declined":
+        if order.status == "declined":
             summary[uid]["declined"] += 1
-        if order["status"] == "completed" and order.get("started_at") and order.get("completed_at"):
-            start = datetime.fromisoformat(order["started_at"])
-            end = datetime.fromisoformat(order["completed_at"])
-            summary[uid]["total_duration"] += (end - start).total_seconds()
+        if order.status == "completed" and order.started_at and order.completed_at:
+            duration = (order.completed_at - order.started_at).total_seconds()
+            summary[uid]["total_duration"] += duration
             summary[uid]["completed"] += 1
-        if order.get("materials_cost"):
-            summary[uid]["materials_cost"] += order["materials_cost"]
+        if hasattr(order, "materials_cost") and order.materials_cost:
+            summary[uid]["materials_cost"] += order.materials_cost
 
     result = []
     for uid, data in summary.items():
@@ -54,16 +56,17 @@ def hvac_analytics(user=Depends(get_current_user)):
     return result
 
 @router.get("/analytics/warehouse")
-def warehouse_analytics(user=Depends(get_current_user)):
+def warehouse_analytics(user=Depends(get_current_user), db: Session = Depends(get_db)):
     if user["role"] != "manager":
-        return {"error": "Only manager can view warehouse analytics"}
+        raise HTTPException(status_code=403, detail="Only manager can view warehouse analytics")
 
-    pending = [r for r in material_requests if r["status"] == "pending"]
-    confirmed = [r for r in material_requests if r["status"] == "confirmed"]
-    issued = [r for r in material_requests if r["status"] == "issued"]
+    requests = db.query(MaterialRequest).all()
+    pending = [r for r in requests if r.status == "pending"]
+    confirmed = [r for r in requests if r.status == "confirmed"]
+    issued = [r for r in requests if r.status == "issued"]
 
     return {
-        "total_requests": len(material_requests),
+        "total_requests": len(requests),
         "pending": len(pending),
         "confirmed": len(confirmed),
         "issued": len(issued),

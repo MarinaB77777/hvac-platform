@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from app.db import Base
 
 class MaterialRequest(Base):
-    tablename = "material_requests"
+    __tablename__ = "material_requests"
 
     id = Column(Integer, primary_key=True, index=True)
     hvac_id = Column(Integer, ForeignKey("users.id"), nullable=False)

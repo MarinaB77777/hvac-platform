@@ -13,6 +13,9 @@ import ManagerAnalytics from "./pages/ManagerAnalytics"
 import ManagerHvac from "./pages/ManagerHvac"
 import { getUserRole, isAuthenticated } from "./auth/auth"
 
+// Новые HVAC-компоненты
+import HVACLayout from "./pages/hvac/HVACLayout"
+
 export default function App() {
   const role = getUserRole()
 
@@ -33,9 +36,18 @@ export default function App() {
         <Route path="/manager-analytics" element={<ManagerAnalytics />} />
         <Route path="/manager-hvac" element={<ManagerHvac />} />
 
-        {/* Новое — автонавигация по роли */}
+        {/* Новая вложенная структура HVAC */}
+        {role === "hvac" && (
+          <Route path="/hvac" element={<HVACLayout />}>
+            <Route path="orders" element={<OrdersList />} />
+            <Route path="my-orders" element={<MyOrders />} />
+            <Route path="materials" element={<div>Материалы (временно)</div>} />
+          </Route>
+        )}
+
+        {/* Автонавигация по роли */}
         <Route
-          path="/"
+          path="*"
           element={
             isAuthenticated()
               ? <Navigate to={`/${role}`} />

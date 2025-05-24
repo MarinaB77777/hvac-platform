@@ -4,6 +4,7 @@ import API from "../../api/axios"
 export default function MaterialsPage() {
   const [tab, setTab] = useState("order")
   const [orders, setOrders] = useState([])
+  const [formData, setFormData] = useState({}) // orderId → { material, quantity }
 
   const tabClass = (name) =>
     `px-3 pb-1 border-b-2 transition ${tab === name
@@ -14,12 +15,36 @@ export default function MaterialsPage() {
     if (tab === "order") {
       API.get("/orders/me")
         .then(res => {
-          const inProgressOrders = res.data.filter(o => o.status === "in_progress")
-          setOrders(inProgressOrders)
+          const inProgress = res.data.filter(o => o.status === "in_progress")
+          setOrders(inProgress)
         })
         .catch(() => alert("Ошибка загрузки заказов"))
     }
   }, [tab])
+
+  const handleInput = (orderId, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [orderId]: {
+        ...prev[orderId],
+        [field]: value
+      }
+    }))
+  }
+
+  const submitRequest = async (orderId) => {
+    const data = formData[orderId]
+    if (!data!data.quantity) {
+      alert("Укажите материал и количество")
+      return
+    }
+
+    // TODO: заменить на реальный API
+    console.log("Заявка:", { orderId, material: data.material, quantity: data.quantity })
+    alert("Заявка отправлена (в консоль)")
+
+    setFormData(prev => ({ ...prev, [orderId]: { material: "", quantity: "" } }))
+  }
 
   return (
     <div>
@@ -40,16 +65,36 @@ export default function MaterialsPage() {
       {tab === "order" && (
         <div className="space-y-4">
           {orders.length === 0 ? (
-            <p className="text-gray-500">Нет активных заказов для оформления заявок</p>
+            <p className="text-gray-500">Нет активных заказов</p>
           ) : (
             orders.map(order => (
               <div key={order.id} className="border rounded p-4">
                 <div><b>Заказ №:</b> {order.id}</div>
                 <div><b>Имя клиента:</b> {order.client_name || "не указано"}</div>
                 <div><b>Адрес:</b> {order.address}</div>
-                <button className="mt-3 bg-blue-600 text-white px-4 py-1 rounded">
-                  Добавить расходники
-                </button>
+
+                <div className="mt-3">
+                  <input
+                    type="text"
+                    placeholder="Материал"
+                    value={formData[order.id]?.material || ""}
+                    onChange={(e) => handleInput(order.id, "material", e.target.value)}
+                    className="border p-1 mr-2"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Кол-во"
+                    value={formData[order.id]?.quantity || ""}
+                    onChange={(e) => handleInput(order.id, "quantity", e.target.value)}
+                    className="border p-1 w-20 mr-2"
+                  />
+                  <button
+                    onClick={() => submitRequest(order.id)}
+                    className="bg-blue-600 text-white px-3 py-1 rounded"
+                  >
+                    Заказать
+                  </button>
+                </div>
               </div>
             ))
           )}

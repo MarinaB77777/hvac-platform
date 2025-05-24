@@ -1,5 +1,5 @@
 from app.db import Base, engine
-from app.models import user, order, warehouse  # Добавь сюда все модули с моделями
+from app.models import user, order, warehouse, material_request
 
 print("Создание таблиц...")
 Base.metadata.create_all(bind=engine)

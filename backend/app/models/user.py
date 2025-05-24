@@ -1,8 +1,6 @@
 from enum import Enum
 from sqlalchemy import Column, String, Integer, Enum as SQLEnum
-from app.db import Base
-
-Base = declarative_base()
+from app.db import Base  # ← правильно импортируем Base
 
 class UserRole(str, Enum):
     client = "client"
@@ -11,7 +9,7 @@ class UserRole(str, Enum):
     manager = "manager"
 
 class User(Base):
-    __tablename__ = "users"  # <-- исправлено здесь
+    __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)

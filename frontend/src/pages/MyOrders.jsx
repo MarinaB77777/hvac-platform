@@ -13,6 +13,8 @@ function formatDuration(startedAt) {
 
 export default function MyOrders() {
   const [orders, setOrders] = useState([])
+  const [showForm, setShowForm] = useState({}) // { [orderId]: 'diagnostic' | 'result' }
+  const [urlInput, setUrlInput] = useState("")
 
   const loadOrders = async () => {
     const res = await API.get("/orders/me")
@@ -30,24 +32,23 @@ export default function MyOrders() {
     loadOrders()
   }
 
-  const uploadResult = async (id) => {
-    const url = prompt("Ссылка на файл результата:")
-    if (url) {
-      await API.post(`/orders/${id}/upload-result`, { url })
-      loadOrders()
-    }
-  }
+  const submitUpload = async (orderId) => {
+    const type = showForm[orderId]
+    if (!urlInput.trim()) return alert("Введите ссылку")
 
-  const uploadDiagnostic = async (id) => {
-    const url = prompt("Ссылка на файл диагностики:")
-    if (url) {
-      await API.post(`/orders/${id}/upload-diagnostic`, { url })
-      loadOrders()
+    if (type === "diagnostic") {
+      await API.post(`/orders/${orderId}/upload-diagnostic`, { url: urlInput })
+    } else if (type === "result") {
+      await API.post(`/orders/${orderId}/upload-result`, { url: urlInput })
     }
+
+    setShowForm(prev => ({ ...prev, [orderId]: null }))
+    setUrlInput("")
+    loadOrders()
   }
 
   const rateOrder = async (id) => {
-    const rating = prompt("Оценка (1-5):")
+    const rating = prompt("Оцените заказ (1–5):")
     if (rating && !isNaN(rating)) {
       await API.post(`/orders/${id}/rate`, { rating: Number(rating) })
       loadOrders()
@@ -63,10 +64,28 @@ export default function MyOrders() {
           <div><b>Статус:</b> {order.status}</div>
           <div><b>Таймер:</b> {formatDuration(order.started_at)}</div>
 
+          {showForm[order.id] && (
+            <div className="mt-2">
+              <input
+                type="text"
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                placeholder="Вставьте ссылку на файл"
+                className="border px-2 py-1 w-full mb-2"
+              />
+              <button
+                onClick={() => submitUpload(order.id)}
+                className="bg-blue-700 text-white px-3 py-1"
+              >
+                Отправить
+              </button>
+            </div>
+          )}
+
           {order.status === "accepted" && (
             <>
               <button
-                onClick={() => uploadDiagnostic(order.id)}
+                onClick={() => setShowForm({ [order.id]: "diagnostic" })}
                 className="bg-blue-500 text-white px-3 py-1 mt-2 mr-2"
               >
                 Загрузить диагностику
@@ -83,7 +102,7 @@ export default function MyOrders() {
           {order.status === "in_progress" && (
             <>
               <button
-                onClick={() => uploadResult(order.id)}
+                onClick={() => setShowForm({ [order.id]: "result" })}
                 className="bg-blue-600 text-white px-3 py-1 mt-2 mr-2"
               >
                 Загрузить результат

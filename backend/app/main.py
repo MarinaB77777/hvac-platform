@@ -30,13 +30,11 @@ app.include_router(materials.router)
 from app.api import hvac_materials
 app.include_router(hvac_materials.router)
 
-from app.api import warehouse
-app.include_router(warehouse.router)
-
 from app.api import analytics
 app.include_router(analytics.router)
 
 from app.api import hvac_users
 app.include_router(hvac_users.router)
+
 from app.api import warehouse_api
 app.include_router(warehouse_api.router)

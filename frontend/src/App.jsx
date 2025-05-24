@@ -12,6 +12,7 @@ import ManagerLogin from "./pages/ManagerLogin"
 import ManagerAnalytics from "./pages/ManagerAnalytics"
 import ManagerHvac from "./pages/ManagerHvac"
 import { getUserRole, isAuthenticated } from "./auth/auth"
+import MaterialsPage from "./pages/hvac/MaterialsPage"
 
 // Новые HVAC-компоненты
 import HVACLayout from "./pages/hvac/HVACLayout"
@@ -41,7 +42,7 @@ export default function App() {
           <Route path="/hvac" element={<HVACLayout />}>
             <Route path="orders" element={<OrdersList />} />
             <Route path="my-orders" element={<MyOrders />} />
-            <Route path="materials" element={<div>Материалы (временно)</div>} />
+            <Route path="materials" element={<MaterialsPage />} />
           </Route>
         )}
 

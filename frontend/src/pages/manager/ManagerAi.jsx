@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import API from "../../api/axios"
+import jsPDF from "jspdf"
+import "jspdf-autotable"
 
 export default function ManagerAi() {
   const [insights, setInsights] = useState([])
@@ -23,7 +25,6 @@ export default function ManagerAi() {
       setInsights(res.data)
       setFiltered(res.data)
     } catch {
-      // Мок-данные
       const mock = [
         {
           title: "Превышение нормы фреона",
@@ -53,9 +54,7 @@ export default function ManagerAi() {
     try {
       const res = await API.get("/ai/settings")
       setSettings(res.data)
-    } catch {
-      // оставить мок
-    }
+    } catch {}
   }
 
   const updateSetting = (field, value) => {
@@ -70,9 +69,38 @@ export default function ManagerAi() {
     else setFiltered(insights.filter(i => i.category === cat))
   }
 
+  const exportPdf = () => {
+    const doc = new jsPDF()
+    doc.setFontSize(16)
+    doc.text("ИИ-анализ: выводы и рекомендации", 14, 20)
+
+    const rows = filtered.map(i => [
+      i.title,
+      i.detail,
+      i.recommendation
+    ])
+
+    doc.autoTable({
+      head: [["Проблема", "Описание", "Рекомендация"]],
+      body: rows,
+      startY: 30,
+      styles: { fontSize: 9 }
+    })
+
+    doc.save("AI-Insights.pdf")
+  }
+
   return (
     <div className="p-4">
-      <h1 className="text-xl mb-4">ИИ-анализ: выводы и настройки</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-xl">ИИ-анализ: выводы и настройки</h1>
+        <button
+          onClick={exportPdf}
+          className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+        >
+          Скачать PDF-отчёт
+        </button>
+      </div>
 
       <div className="mb-6 border p-4 rounded bg-gray-50">
         <h2 className="font-medium mb-2">Настройки анализа</h2>
@@ -115,7 +143,8 @@ export default function ManagerAi() {
               className="mr-1"
             />
             Уведомлять о нарушениях
-          </label>
+
+</label>
         </div>
       </div>
 
@@ -137,8 +166,7 @@ export default function ManagerAi() {
       {filtered.length === 0 ? (
         <p className="text-gray-500">Нет данных для выбранной категории</p>
       ) : (
-
-<div className="space-y-4">
+        <div className="space-y-4">
           {filtered.map((i, idx) => (
             <div key={idx} className="border rounded p-4 bg-white shadow-sm">
               <h2 className="font-bold text-lg mb-1 text-red-600">{i.title}</h2>
@@ -151,4 +179,3 @@ export default function ManagerAi() {
     </div>
   )
 }
-

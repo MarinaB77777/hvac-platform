@@ -1,22 +1,27 @@
 import React from "react"
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+
 import LoginPage from "./pages/LoginPage"
-import OrdersList from "./pages/OrdersList"
-import MyOrders from "./pages/MyOrders"
+
+import MyOrders from "./pages/hvac/MyOrders"
+import MaterialsPage from "./pages/hvac/MaterialsPage"
+import HVACLayout from "./pages/hvac/HVACLayout"
+import MapOrders from "./pages/hvac/MapOrders"
+
 import ClientLogin from "./pages/ClientLogin"
 import ClientOrders from "./pages/client/ClientOrders"
 import ClientLayout from "./pages/client/ClientLayout"
+import ClientNewOrder from "./pages/client/ClientNewOrder"
+
 import WarehouseLogin from "./pages/WarehouseLogin"
 import WarehouseRequests from "./pages/WarehouseRequests"
 import WarehouseMovement from "./pages/WarehouseMovement"
+
 import ManagerLogin from "./pages/ManagerLogin"
 import ManagerAnalytics from "./pages/ManagerAnalytics"
 import ManagerHvac from "./pages/ManagerHvac"
-import { getUserRole, isAuthenticated } from "./auth/auth"
-import MaterialsPage from "./pages/hvac/MaterialsPage"
 
-// Новые HVAC-компоненты
-import HVACLayout from "./pages/hvac/HVACLayout"
+import { getUserRole, isAuthenticated } from "./auth/auth"
 
 export default function App() {
   const role = getUserRole()
@@ -26,9 +31,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Сохранившиеся старые маршруты */}
-        <Route path="/orders" element={<OrdersList />} />
-        <Route path="/my-orders" element={<MyOrders />} />
+        {/* Старые маршруты (если нужны для тестов) */}
         <Route path="/client-login" element={<ClientLogin />} />
         <Route path="/client-orders" element={<ClientOrders />} />
         <Route path="/warehouse-login" element={<WarehouseLogin />} />
@@ -38,33 +41,34 @@ export default function App() {
         <Route path="/manager-analytics" element={<ManagerAnalytics />} />
         <Route path="/manager-hvac" element={<ManagerHvac />} />
 
-        {/* Новая вложенная структура HVAC */}
+        {/* HVAC */}
         {role === "hvac" && (
           <Route path="/hvac" element={<HVACLayout />}>
-            <Route path="orders" element={<OrdersList />} />
             <Route path="my-orders" element={<MyOrders />} />
             <Route path="materials" element={<MaterialsPage />} />
-          </Route>
-        )}
-        {role === "client" && (
-           <Route path="/client" element={<ClientLayout />}>
-             <Route path="orders" element={<ClientOrders />} />
-             <Route path="new" element={<div>Создание заказа (временно)</div>} />
-             <Route path="profile" element={<div>Профиль (временно)</div>} />
+            <Route path="free-orders" element={<MapOrders />} />
           </Route>
         )}
 
-        
-        {/* Автонавигация по роли */}
-          <Route
-           path="*"
-           element={
+        {/* Client */}
+        {role === "client" && (
+          <Route path="/client" element={<ClientLayout />}>
+            <Route path="orders" element={<ClientOrders />} />
+            <Route path="new" element={<ClientNewOrder />} />
+            <Route path="profile" element={<div>Профиль (временно)</div>} />
+          </Route>
+        )}
+
+        {/* Автонавигация */}
+        <Route
+          path="*"
+          element={
             isAuthenticated()
-             ? <Navigate to={`/${role}`} />
-             : <Navigate to="/login" />
-        }
+              ? <Navigate to={`/${role}`} />
+              : <Navigate to="/login" />
+          }
         />
-           </Routes>
-           </BrowserRouter>
-        )
-        }
+      </Routes>
+    </BrowserRouter>
+  )
+}

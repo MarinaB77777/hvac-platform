@@ -25,6 +25,8 @@ import ManagerStock from "./pages/manager/ManagerStock"
 import ManagerLayout from "./pages/manager/ManagerLayout"
 import ManagerEfficiency from "./pages/manager/ManagerEfficiency"
 
+import ManagerAi from "./pages/manager/ManagerAi"
+
 import { getUserRole, isAuthenticated } from "./auth/auth"
 
 export default function App() {
@@ -66,7 +68,7 @@ export default function App() {
          <Route path="orders" element={<ManagerOrders />} />
          <Route path="stock" element={<ManagerStock />} />
          <Route path="efficiency" element={<ManagerEfficiency />} />
-         <Route path="ai" element={<div>ИИ-анализ (временно)</div>} />
+         <Route path="ai" element={<ManagerAi />} />
       </Route>
       )}
          

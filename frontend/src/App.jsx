@@ -5,6 +5,7 @@ import OrdersList from "./pages/OrdersList"
 import MyOrders from "./pages/MyOrders"
 import ClientLogin from "./pages/ClientLogin"
 import ClientOrders from "./pages/client/ClientOrders"
+import ClientLayout from "./pages/client/ClientLayout"
 import WarehouseLogin from "./pages/WarehouseLogin"
 import WarehouseRequests from "./pages/WarehouseRequests"
 import WarehouseMovement from "./pages/WarehouseMovement"
@@ -45,17 +46,25 @@ export default function App() {
             <Route path="materials" element={<MaterialsPage />} />
           </Route>
         )}
+        {role === "client" && (
+           <Route path="/client" element={<ClientLayout />}>
+             <Route path="orders" element={<ClientOrders />} />
+             <Route path="new" element={<div>Создание заказа (временно)</div>} />
+             <Route path="profile" element={<div>Профиль (временно)</div>} />
+          </Route>
+        )}
 
+        
         {/* Автонавигация по роли */}
-        <Route
-          path="*"
-          element={
+          <Route
+           path="*"
+           element={
             isAuthenticated()
-              ? <Navigate to={`/${role}`} />
-              : <Navigate to="/login" />
-          }
+             ? <Navigate to={`/${role}`} />
+             : <Navigate to="/login" />
+        }
         />
-      </Routes>
-    </BrowserRouter>
-  )
-}
+           </Routes>
+           </BrowserRouter>
+        )
+        }

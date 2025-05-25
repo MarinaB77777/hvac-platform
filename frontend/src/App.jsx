@@ -17,9 +17,9 @@ import WarehouseLogin from "./pages/warehouse/WarehouseLogin"
 import WarehouseRequests from "./pages/warehouse/WarehouseRequests"
 import WarehouseMovement from "./pages/warehouse/WarehouseMovement"
 
-import ManagerLogin from "./pages/ManagerLogin"
-import ManagerAnalytics from "./pages/ManagerAnalytics"
-import ManagerHvac from "./pages/ManagerHvac"
+import ManagerLogin from "./pages/manager/ManagerLogin"
+import ManagerAnalytics from "./pages/manager/ManagerAnalytics"
+import ManagerHvac from "./pages/manager/ManagerHvac"
 
 import { getUserRole, isAuthenticated } from "./auth/auth"
 

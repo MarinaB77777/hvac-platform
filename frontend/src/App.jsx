@@ -20,14 +20,10 @@ import WarehouseMovement from "./pages/warehouse/WarehouseMovement"
 import ManagerLogin from "./pages/manager/ManagerLogin"
 import ManagerAnalytics from "./pages/manager/ManagerAnalytics"
 import ManagerHvac from "./pages/manager/ManagerHvac"
-import ManagerLayout from "./pages/manager/ManagerLayout"
 import ManagerOrders from "./pages/manager/ManagerOrders"
+import ManagerStock from "./pages/manager/ManagerStock"
+import ManagerLayout from "./pages/manager/ManagerLayout"
 
-{role === "manager" && (
-  <Route path="/manager" element={<ManagerLayout />}>
-    {/* Вложенные маршруты пойдут дальше */}
-  </Route>
-)}
 import { getUserRole, isAuthenticated } from "./auth/auth"
 
 export default function App() {
@@ -37,17 +33,9 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-
-        {/* Старые маршруты (если нужны для тестов) */}
         <Route path="/client-login" element={<ClientLogin />} />
-        <Route path="/client-orders" element={<ClientOrders />} />
         <Route path="/warehouse-login" element={<WarehouseLogin />} />
-        <Route path="/warehouse-requests" element={<WarehouseRequests />} />
-        <Route path="/warehouse-movement" element={<WarehouseMovement />} />
         <Route path="/manager-login" element={<ManagerLogin />} />
-        <Route path="/manager-analytics" element={<ManagerAnalytics />} />
-        <Route path="/manager-hvac" element={<ManagerHvac />} />
-        <Route path="/manager/orders" element={<ManagerOrders />} />
 
         {/* HVAC */}
         {role === "hvac" && (
@@ -67,7 +55,22 @@ export default function App() {
           </Route>
         )}
 
-        {/* Автонавигация */}
+        {/* Warehouse */}
+        <Route path="/warehouse-requests" element={<WarehouseRequests />} />
+        <Route path="/warehouse-movement" element={<WarehouseMovement />} />
+
+        {/* Manager */}
+        {role === "manager" && (
+          <Route path="/manager" element={<ManagerLayout />}>
+            <Route path="hvac" element={<ManagerHvac />} />
+            <Route path="orders" element={<ManagerOrders />} />
+            <Route path="stock" element={<ManagerStock />} />
+            <Route path="efficiency" element={<ManagerAnalytics />} />
+            <Route path="ai" element={<div>ИИ-анализ (временно)</div>} />
+          </Route>
+        )}
+
+        {/* Автонавигация по роли */}
         <Route
           path="*"
           element={

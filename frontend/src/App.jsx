@@ -20,7 +20,13 @@ import WarehouseMovement from "./pages/warehouse/WarehouseMovement"
 import ManagerLogin from "./pages/manager/ManagerLogin"
 import ManagerAnalytics from "./pages/manager/ManagerAnalytics"
 import ManagerHvac from "./pages/manager/ManagerHvac"
+import ManagerLayout from "./pages/manager/ManagerLayout"
 
+{role === "manager" && (
+  <Route path="/manager" element={<ManagerLayout />}>
+    {/* Вложенные маршруты пойдут дальше */}
+  </Route>
+)}
 import { getUserRole, isAuthenticated } from "./auth/auth"
 
 export default function App() {

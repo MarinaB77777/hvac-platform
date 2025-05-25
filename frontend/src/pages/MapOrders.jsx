@@ -1,31 +1,24 @@
 import { useEffect, useState } from "react"
-import API from "../api/axios"
+import API from "../../api/axios"
 
 export default function MapOrders() {
   const [orders, setOrders] = useState([])
 
-  const loadOrders = async () => {
-    try {
-      const res = await API.get("/orders/available")
-      setOrders(res.data)
-    } catch (err) {
-      alert("Ошибка загрузки заказов")
-    }
-  }
+  useEffect(() => {
+    API.get("/orders/available")
+      .then(res => setOrders(res.data))
+      .catch(() => alert("Ошибка загрузки заказов"))
+  }, [])
 
   const takeOrder = async (id) => {
     try {
       await API.post(`/orders/${id}/take`)
-      alert("Вы приняли заказ. Ожидаем оплату клиента.")
-      loadOrders()
-    } catch (err) {
+      alert("Вы приняли заказ. Ожидается оплата клиента.")
+      setOrders((prev) => prev.filter(o => o.id !== id))
+    } catch {
       alert("Не удалось принять заказ")
     }
   }
-
-  useEffect(() => {
-    loadOrders()
-  }, [])
 
   return (
     <div className="p-4">

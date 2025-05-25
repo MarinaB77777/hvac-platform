@@ -60,17 +60,16 @@ export default function App() {
         <Route path="/warehouse-requests" element={<WarehouseRequests />} />
         <Route path="/warehouse-movement" element={<WarehouseMovement />} />
 
-        {/* Manager */}
-        {role === "manager" && (
-          <Route path="/manager" element={<ManagerLayout />}>
-            <Route path="hvac" element={<ManagerHvac />} />
-            <Route path="orders" element={<ManagerOrders />} />
-            <Route path="stock" element={<ManagerStock />} />
-            <Route path="efficiency" element={<ManagerAnalytics />} />
-            <Route path="ai" element={<div>ИИ-анализ (временно)</div>} />
-          </Route>
-        )}
-
+       {role === "manager" && (
+       <Route path="/manager" element={<ManagerLayout />}>
+         <Route path="hvac" element={<ManagerHvac />} />
+         <Route path="orders" element={<ManagerOrders />} />
+         <Route path="stock" element={<ManagerStock />} />
+         <Route path="efficiency" element={<ManagerEfficiency />} />
+         <Route path="ai" element={<div>ИИ-анализ (временно)</div>} />
+      </Route>
+      )}
+         
         {/* Автонавигация по роли */}
         <Route
           path="*"

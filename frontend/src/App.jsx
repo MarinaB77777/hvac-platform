@@ -13,9 +13,9 @@ import ClientOrders from "./pages/client/ClientOrders"
 import ClientLayout from "./pages/client/ClientLayout"
 import ClientNewOrder from "./pages/client/ClientNewOrder"
 
-import WarehouseLogin from "./pages/WarehouseLogin"
-import WarehouseRequests from "./pages/WarehouseRequests"
-import WarehouseMovement from "./pages/WarehouseMovement"
+import WarehouseLogin from "./pages/warehouse/WarehouseLogin"
+import WarehouseRequests from "./pages/warehouse/WarehouseRequests"
+import WarehouseMovement from "./pages/warehouse/WarehouseMovement"
 
 import ManagerLogin from "./pages/ManagerLogin"
 import ManagerAnalytics from "./pages/ManagerAnalytics"

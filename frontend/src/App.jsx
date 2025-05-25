@@ -23,6 +23,7 @@ import ManagerHvac from "./pages/manager/ManagerHvac"
 import ManagerOrders from "./pages/manager/ManagerOrders"
 import ManagerStock from "./pages/manager/ManagerStock"
 import ManagerLayout from "./pages/manager/ManagerLayout"
+import ManagerEfficiency from "./pages/manager/ManagerEfficiency"
 
 import { getUserRole, isAuthenticated } from "./auth/auth"
 

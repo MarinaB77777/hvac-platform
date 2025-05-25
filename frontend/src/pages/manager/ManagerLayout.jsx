@@ -15,6 +15,7 @@ export default function ManagerLayout() {
         <Link to="/manager/orders" className="text-blue-600 hover:underline">Все заказы</Link>
         <Link to="/manager/efficiency" className="text-blue-600 hover:underline">Анализ эффективности</Link>
         <Link to="/manager/materials-check" className="text-blue-600 hover:underline">Контроль расходников</Link>
+        <Link to="/manager/orders" className="text-blue-600 hover:underline">Все заказы</Link>
         <Link to="/manager/ai" className="text-blue-600 hover:underline">ИИ-анализ</Link>
         <button onClick={logout} className="ml-auto text-red-600 hover:underline">Выйти</button>
       </nav>

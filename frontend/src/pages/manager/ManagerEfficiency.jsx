@@ -1,115 +1,32 @@
-> Муж:
-import React from "react"
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
-
-import LoginPage from "./pages/LoginPage"
-
-import MyOrders from "./pages/hvac/MyOrders"
-import MaterialsPage from "./pages/hvac/MaterialsPage"
-import HVACLayout from "./pages/hvac/HVACLayout"
-import MapOrders from "./pages/hvac/MapOrders"
-
-import ClientLogin from "./pages/ClientLogin"
-import ClientOrders from "./pages/client/ClientOrders"
-import ClientLayout from "./pages/client/ClientLayout"
-import ClientNewOrder from "./pages/client/ClientNewOrder"
-
-import WarehouseLogin from "./pages/warehouse/WarehouseLogin"
-import WarehouseRequests from "./pages/warehouse/WarehouseRequests"
-import WarehouseMovement from "./pages/warehouse/WarehouseMovement"
-
-import ManagerLogin from "./pages/manager/ManagerLogin"
-import ManagerAnalytics from "./pages/manager/ManagerAnalytics"
-import ManagerHvac from "./pages/manager/ManagerHvac"
-import ManagerOrders from "./pages/manager/ManagerOrders"
-import ManagerStock from "./pages/manager/ManagerStock"
-import ManagerLayout from "./pages/manager/ManagerLayout"
-
-import { getUserRole, isAuthenticated } from "./auth/auth"
-
-export default function App() {
-  const role = getUserRole()
-
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/client-login" element={<ClientLogin />} />
-        <Route path="/warehouse-login" element={<WarehouseLogin />} />
-        <Route path="/manager-login" element={<ManagerLogin />} />
-
-        {/* HVAC */}
-        {role === "hvac" && (
-          <Route path="/hvac" element={<HVACLayout />}>
-            <Route path="my-orders" element={<MyOrders />} />
-            <Route path="materials" element={<MaterialsPage />} />
-            <Route path="free-orders" element={<MapOrders />} />
-          </Route>
-        )}
-
-        {/* Client */}
-        {role === "client" && (
-          <Route path="/client" element={<ClientLayout />}>
-            <Route path="orders" element={<ClientOrders />} />
-            <Route path="new" element={<ClientNewOrder />} />
-            <Route path="profile" element={<div>Профиль (временно)</div>} />
-          </Route>
-        )}
-
-        {/* Warehouse */}
-        <Route path="/warehouse-requests" element={<WarehouseRequests />} />
-        <Route path="/warehouse-movement" element={<WarehouseMovement />} />
-
-        {/* Manager */}
-        {role === "manager" && (
-          <Route path="/manager" element={<ManagerLayout />}>
-            <Route path="hvac" element={<ManagerHvac />} />
-            <Route path="orders" element={<ManagerOrders />} />
-            <Route path="stock" element={<ManagerStock />} />
-            <Route path="efficiency" element={<ManagerAnalytics />} />
-            <Route path="ai" element={<div>ИИ-анализ (временно)</div>} />
-          </Route>
-        )}
-
-        {/* Автонавигация по роли */}
-        <Route
-          path="*"
-          element={
-            isAuthenticated()
-              ? <Navigate to={`/${role}`} />
-              : <Navigate to="/login" />
-          }
-        />
-      </Routes>
-    </BrowserRouter>
-  )
-}
-
-> Муж:
 import { useEffect, useState } from "react"
 import API from "../../api/axios"
 
 export default function ManagerEfficiency() {
   const [norms, setNorms] = useState([])
   const [newNorm, setNewNorm] = useState({ job: "", category: "", brand: "", max: 1 })
+  const [orders, setOrders] = useState([])
 
   useEffect(() => {
-    loadNorms()
+    loadData()
   }, [])
 
-  const loadNorms = async () => {
+  const loadData = async () => {
     try {
-      const res = await API.get("/material-norms")
-      setNorms(res.data)
+      const [normRes, orderRes] = await Promise.all([
+        API.get("/material-norms"),
+        API.get("/orders/all")
+      ])
+      setNorms(normRes.data)
+      setOrders(orderRes.data.filter(o => o.status === "completed"))
     } catch {
-      alert("Ошибка загрузки норм")
+      alert("Ошибка загрузки данных")
     }
   }
 
   const updateNorm = async (id, field, value) => {
     try {
       await API.patch(`/material-norms/${id}`, { [field]: value })
-      loadNorms()
+      loadData()
     } catch {
       alert("Ошибка при обновлении")
     }
@@ -118,7 +35,7 @@ export default function ManagerEfficiency() {
   const deleteNorm = async (id) => {
     try {
       await API.delete(`/material-norms/${id}`)
-      loadNorms()
+      loadData()
     } catch {
       alert("Ошибка при удалении")
     }
@@ -128,10 +45,39 @@ export default function ManagerEfficiency() {
     try {
       await API.post("/material-norms", newNorm)
       setNewNorm({ job: "", category: "", brand: "", max: 1 })
-      loadNorms()
+      loadData()
     } catch {
       alert("Ошибка при добавлении")
     }
+  }
+
+  const getNorm = (job, category, brand) => {
+    const match = norms.find(n =>
+      n.job === job &&
+      n.category === category &&
+      (n.brand === brand || !n.brand)
+    )
+    return match ? Number(match.max) : null
+  }
+
+  const analyzeMaterials = (order) => {
+    if (!order.materials_used || !order.job_type) return "—"
+
+    const summary = {}
+    order.materials_used.forEach(mat => {
+      const key = ${mat.category}::${mat.brand}
+      summary[key] = (summary[key] || 0) + 1
+    })
+
+    const overused = Object.entries(summary).filter(([key, qty]) => {
+      const [category, brand] = key.split("::")
+      const norm = getNorm(order.job_type, category, brand)
+      return norm !== null && qty > norm
+    })
+
+    return overused.length > 0
+      ? <span className="text-red-600 font-medium">Превышение</span>
+      : <span className="text-green-700">OK</span>
   }
 
   return (
@@ -172,7 +118,8 @@ export default function ManagerEfficiency() {
           <tr className="border-t bg-gray-50">
             <td className="border px-2 py-1">
               <input value={newNorm.job} onChange={(e) => setNewNorm({ ...newNorm, job: e.target.value })} className="border px-1 w-full" />
-            </td>
+
+</td>
             <td className="border px-2 py-1">
               <input value={newNorm.category} onChange={(e) => setNewNorm({ ...newNorm, category: e.target.value })} className="border px-1 w-full" />
             </td>
@@ -188,6 +135,37 @@ export default function ManagerEfficiency() {
           </tr>
         </tbody>
       </table>
+
+      <h1 className="text-xl mb-4 mt-10">Анализ отклонений по заказам</h1>
+      {orders.length === 0 ? (
+        <p className="text-gray-500">Нет завершённых заказов</p>
+      ) : (
+        <table className="w-full text-sm border">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border px-2 py-1">Дата</th>
+              <th className="border px-2 py-1">HVAC</th>
+              <th className="border px-2 py-1">Тип работы</th>
+              <th className="border px-2 py-1">Материалы</th>
+              <th className="border px-2 py-1">Результат</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map(order => (
+              <tr key={order.id} className="border-t">
+                <td className="border px-2 py-1">{order.date}</td>
+                <td className="border px-2 py-1">{order.hvac_name}</td>
+                <td className="border px-2 py-1">{order.job_type || "—"}</td>
+                <td className="border px-2 py-1">
+                  {order.materials_used?.map(m => m.category + " " + m.brand).join(", ") || "—"}
+                </td>
+                <td className="border px-2 py-1">{analyzeMaterials(order)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   )
 }
+

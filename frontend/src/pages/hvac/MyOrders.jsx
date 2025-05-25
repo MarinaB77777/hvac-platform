@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import API from "../api/axios"
+import API from "../../api/axios"
 
 function formatDuration(startedAt) {
   if (!startedAt) return "-"
@@ -13,7 +13,7 @@ function formatDuration(startedAt) {
 
 export default function MyOrders() {
   const [orders, setOrders] = useState([])
-  const [showForm, setShowForm] = useState({}) // { [orderId]: 'diagnostic' | 'result' }
+  const [showForm, setShowForm] = useState({})
   const [urlInput, setUrlInput] = useState("")
 
   const loadOrders = async () => {

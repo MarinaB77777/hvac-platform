@@ -21,6 +21,7 @@ import ManagerLogin from "./pages/manager/ManagerLogin"
 import ManagerAnalytics from "./pages/manager/ManagerAnalytics"
 import ManagerHvac from "./pages/manager/ManagerHvac"
 import ManagerLayout from "./pages/manager/ManagerLayout"
+import ManagerOrders from "./pages/manager/ManagerOrders"
 
 {role === "manager" && (
   <Route path="/manager" element={<ManagerLayout />}>
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="/manager-login" element={<ManagerLogin />} />
         <Route path="/manager-analytics" element={<ManagerAnalytics />} />
         <Route path="/manager-hvac" element={<ManagerHvac />} />
+        <Route path="/manager/orders" element={<ManagerOrders />} />
 
         {/* HVAC */}
         {role === "hvac" && (

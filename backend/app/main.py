@@ -1,22 +1,27 @@
 from fastapi import FastAPI
-from app.api import material_requests
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()  # ← СНАЧАЛА создаем app
+from app.api import (
+    login,
+    material_requests,
+    warehouse_api,
+    orders,  # ← ДОБАВЬ ЭТО
+)
 
-# Затем подключаем роутеры
+app = FastAPI()
+
+# Подключаем роутеры
+app.include_router(login.router)
 app.include_router(material_requests.router)
+app.include_router(warehouse_api.router)
+app.include_router(orders.router)  # ← ОБЯЗАТЕЛЬНО
 
-# Корневая точка
+# Корневой эндпоинт
 @app.get("/")
 def root():
     return {"message": "HVAC Platform API is up and running"}
 
-# Другие роутеры и middleware
-from fastapi.middleware.cors import CORSMiddleware
-from app.api import login
-
-app.include_router(login.router)
-
+# Разрешаем CORS (кросс-доменные запросы)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,6 +29,3 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-from app.api import warehouse_api
-app.include_router(warehouse_api.router)

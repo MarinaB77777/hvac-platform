@@ -1,3 +1,4 @@
+from enum import Enum
 from sqlalchemy import Column, String, Integer, Enum as SQLEnum
 from app.db import Base
 

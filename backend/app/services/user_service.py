@@ -7,10 +7,10 @@ from datetime import datetime
 def create_user(db: Session, user_data: UserCreate):
     hashed_password = bcrypt.hash(user_data.password)
     user = User(
-        username=user_data.username,
+        name=user_data.name,
+        phone=user_data.phone,
         hashed_password=hashed_password,
-        role=user_data.role,
-        created_at=datetime.utcnow()
+        role=user_data.role
     )
     db.add(user)
     db.commit()

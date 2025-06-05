@@ -29,3 +29,4 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+from app.init_db import *

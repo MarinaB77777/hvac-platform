@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Integer
 from app.db import Base
 
 class User(Base):
-    tablename = "users"  # ✅ правильно пишем имя таблицы с двумя подчёркиваниями
+    __tablename__ = "users"  # ✅ правильно пишем имя таблицы с двумя подчёркиваниями
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)                   # отображаемое имя

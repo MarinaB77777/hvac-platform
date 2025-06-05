@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
 class UserCreate(BaseModel):
-    username: str
+    name: str
+    phone: str
     password: str
-    role: str  # Например: "hvac", "manager", "warehouse"
+    role: str = "hvac"  # можно оставить фиксированной

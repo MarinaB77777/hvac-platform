@@ -36,3 +36,15 @@ app.add_middleware(
 
 # Создание таблиц
 from app.init_db import *
+
+from app.db import engine
+from sqlalchemy import text
+
+# Временно: Добавить колонку вручную
+with engine.connect() as conn:
+    try:
+        conn.execute(text("ALTER TABLE users ADD COLUMN hashed_password VARCHAR;"))
+        print("✅ Столбец hashed_password добавлен")
+    except Exception as e:
+        print("ℹ️ Возможно, столбец уже есть:", e)
+

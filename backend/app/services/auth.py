@@ -9,37 +9,42 @@ from typing import Optional
 from app.db import get_db
 from app.models.user import User
 
-# Константы
+# 🔐 Константы
 SECRET_KEY = "supersecret"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-# Схема авторизации
+# 💡 Используем tokenUrl для формы логина
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-# 🔐 Создание токена
+
+# 📦 Создание JWT-токена
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-# 🔍 Получение пользователя по имени
-def get_user_by_username(db: Session, username: str):
-    return db.query(User).filter(User.name == username).first()
+
+# 🔍 Получение пользователя по телефону
+def get_user_by_phone(db: Session, phone: str):
+    return db.query(User).filter(User.phone == phone).first()
+
 
 # ✅ Проверка пароля
 def verify_password(plain_password: str, hashed_password: str):
     return bcrypt.verify(plain_password, hashed_password)
 
-# 🚪 Аутентификация пользователя
-def authenticate_user(db: Session, username: str, password: str):
-    user = get_user_by_username(db, username)
+
+# 🔑 Аутентификация по телефону и паролю
+def authenticate_user(db: Session, phone: str, password: str):
+    user = get_user_by_phone(db, phone)
     if not user or not verify_password(password, user.hashed_password):
         return None
     return user
 
-# 👤 Получение текущего пользователя по токену
+
+# 👤 Получение текущего пользователя из токена
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -48,10 +53,10 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
+        phone: str = payload.get("sub")
+        if phone is None:
             raise credentials_exception
-        user = get_user_by_username(db, username)
+        user = get_user_by_phone(db, phone)
         if user is None:
             raise credentials_exception
         return user

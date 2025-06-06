@@ -1,11 +1,24 @@
-from sqlalchemy import Column, String, Integer
+from enum import Enum
+from sqlalchemy import Column, String, Integer, Enum as SQLEnum
 from app.db import Base
 
+class UserRole(str, Enum):
+    client = "client"
+    hvac = "hvac"
+    warehouse = "warehouse"
+    manager = "manager"
+
 class User(Base):
-    __tablename__ = "users"  # ✅ правильно пишем имя таблицы с двумя подчёркиваниями
+    tablename = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)                   # отображаемое имя
-    phone = Column(String, unique=True, index=True)         # логин (телефон)
-    hashed_password = Column(String, nullable=False)        # хэш пароля
-    role = Column(String, nullable=False)                   # роль (hvac и т.д.)
+    name = Column(String, nullable=False)                         # отображаемое имя
+    phone = Column(String, unique=True, index=True, nullable=False)  # логин
+    hashed_password = Column(String, nullable=False)              # хэш пароля
+    role = Column(SQLEnum(UserRole), nullable=False)              # тип пользователя
+    
+    # Новые поля
+    location = Column(String, nullable=True)                      # местоположение
+    qualification = Column(String, nullable=True)                 # квалификация (HVAC)
+    rate = Column(Integer, nullable=True)                         # тариф или ставка
+    status = Column(String, nullable=True)                        # активен / заблокирован / уволен и т.п.

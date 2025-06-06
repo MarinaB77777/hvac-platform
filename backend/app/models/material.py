@@ -3,7 +3,7 @@ from app.db import Base
 from datetime import datetime
 
 class Material(Base):
-    tablename = "materials"
+    __tablename__ = "materials"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)

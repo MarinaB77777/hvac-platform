@@ -39,6 +39,16 @@ app.include_router(warehouse_api.router)
 app.include_router(orders.router)
 
 #from app.db import engine
+from app.models.order import Order
+from app.db import Base, engine
+
+print("⏳ Пробуем создать таблицу orders...")
+try:
+    Order.__table__.create(bind=engine, checkfirst=True)
+    print("✅ Таблица orders создана.")
+except Exception as e:
+    print("⚠️ Не удалось создать таблицу orders:", e)
+    
 from sqlalchemy import text
 
 # 🔧 Добавляем недостающие столбцы, если нужно

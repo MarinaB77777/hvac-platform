@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Date
 from app.db import Base
+from datetime import datetime
 
 class Material(Base):
     tablename = "materials"
@@ -10,4 +11,4 @@ class Material(Base):
     stock_count = Column(Integer)
     photo_url = Column(String)
     status = Column(String)
-    arrival_date = Column(String)  # Можно заменить на Date, если используешь формат даты
+    arrival_date = Column(Date, default=datetime.utcnow)  # ✅ автоматическая дата

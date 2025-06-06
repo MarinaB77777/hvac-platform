@@ -36,12 +36,14 @@ def root():
     return {"message": "HVAC Platform API is up and running"}
 
 # 🔧 Добавляем недостающие столбцы, если нужно
-with engine.connect() as conn:
+from sqlalchemy.exc import SQLAlchemyError
+
+with engine.begin() as conn:  # begin = отдельная транзакция на каждую итерацию
     def safe_alter(sql):
         try:
             conn.execute(text(sql))
             print(f"✅ {sql}")
-        except Exception as e:
+        except SQLAlchemyError as e:
             print(f"⚠️ Пропущено: {sql} — {e}")
 
     print("\n🔧 Проверка и добавление недостающих столбцов...")

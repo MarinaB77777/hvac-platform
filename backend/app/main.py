@@ -10,10 +10,12 @@ from app.api import (
     orders,
 )
 
-# 🧩 SQL для добавления недостающих столбцов
-from app.db import engine
+from app.db import engine, Base
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
+
+# 🧩 Импортируем все модели (важно для создания таблиц)
+from app.models import user, order, warehouse, material_request, material
 
 app = FastAPI()
 
@@ -38,18 +40,13 @@ app.include_router(material_requests.router)
 app.include_router(warehouse_api.router)
 app.include_router(orders.router)
 
-#from app.db import engine
-from app.models.order import Order
-from app.db import Base, engine
-
-print("⏳ Пробуем создать таблицу orders...")
+# 🛠️ Создаём ВСЕ таблицы (важно для корректной работы ALTER TABLE)
+print("⏳ Пробуем создать все таблицы...")
 try:
-    Order.__table__.create(bind=engine, checkfirst=True)
-    print("✅ Таблица orders создана.")
+    Base.metadata.create_all(bind=engine)
+    print("✅ Все таблицы созданы.")
 except Exception as e:
-    print("⚠️ Не удалось создать таблицу orders:", e)
-    
-from sqlalchemy import text
+    print("⚠️ Не удалось создать таблицы:", e)
 
 # 🔧 Добавляем недостающие столбцы, если нужно
 with engine.connect() as conn:

@@ -8,6 +8,7 @@ from app.api import (
     material_requests,
     warehouse_api,
     orders,
+    manager_api,
 )
 
 from app.db import engine, Base
@@ -39,6 +40,7 @@ app.include_router(user_api.router)
 app.include_router(material_requests.router)
 app.include_router(warehouse_api.router)
 app.include_router(orders.router)
+app.include_router(manager_api.router)  
 
 # 🛠️ Создаём ВСЕ таблицы (важно для корректной работы ALTER TABLE)
 print("⏳ Пробуем создать все таблицы...")

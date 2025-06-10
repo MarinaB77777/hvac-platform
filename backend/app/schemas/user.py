@@ -5,7 +5,7 @@ class UserCreate(BaseModel):
     name: str
     phone: str
     password: str
-    role: str = "hvac"
+    role: str 
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None

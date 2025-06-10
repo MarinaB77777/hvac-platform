@@ -9,32 +9,37 @@ from app.services.auth import get_current_user
 
 router = APIRouter()
 
-# 🔐 Регистрация
 @router.post("/register")
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
+    # 🔍 Проверка — есть ли уже пользователь с таким телефоном
     existing_user = db.query(User).filter(User.phone == user_data.phone).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Пользователь уже существует")
 
+    # 🔐 Хешируем пароль
     hashed_password = bcrypt.hash(user_data.password)
 
+    # ✅ Создаём нового пользователя
     new_user = User(
         name=user_data.name,
         phone=user_data.phone,
         hashed_password=hashed_password,
         role=user_data.role,
         location=user_data.location,
-        qualification=user_data.qualification,
-        rate=user_data.rate,
-        status=user_data.status,
+        qualification=user_data.qualification or None,
+        rate=user_data.rate if user_data.rate is not None else None,
+        status=user_data.status or "active",
     )
 
     db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    try:
+        db.commit()
+        db.refresh(new_user)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Ошибка при сохранении пользователя: {str(e)}")
 
-    return {"message": "Пользователь успешно зарегистрирован"}
-
+    return {"message": "Пользователь успешно зарегистрирован", "id": new_user.id}
 # 🔍 Получение текущего пользователя (для /users/me)
 @router.get("/users/me")
 def get_me(current_user: User = Depends(get_current_user)):

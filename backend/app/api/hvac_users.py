@@ -40,11 +40,25 @@ def update_hvac_user(user_id: int, data: dict = Body(...), user=Depends(get_curr
     for u in hvac_users:
         if u["id"] == user_id:
             u.update({
-                "diagnostic_fee": data.get("diagnostic_fee", u["diagnostic_fee"]),
-                "work_fee": data.get("work_fee", u["work_fee"]),
-                "transport_fee": data.get("transport_fee", u["transport_fee"]),
-                "qualification": data.get("qualification", u["qualification"]),
+                "diagnostic_fee": data.get("diagnostic_fee", u.get("diagnostic_fee")),
+                "work_fee": data.get("work_fee", u.get("work_fee")),
+                "transport_fee": data.get("transport_fee", u.get("transport_fee")),
+                "qualification": data.get("qualification", u.get("qualification")),
             })
             return u
 
     raise HTTPException(status_code=404, detail="User not found")
+
+@router.put("/hvac/location/{user_id}")
+def update_location(user_id: int, data: dict = Body(...), user=Depends(get_current_user)):
+    location = data.get("location")
+    if not location:
+        raise HTTPException(status_code=400, detail="Location is required")
+
+    for u in hvac_users:
+        if u["id"] == user_id:
+            u["location"] = location
+            return {"status": "ok", "location": u["location"]}
+
+    raise HTTPException(status_code=404, detail="User not found")
+

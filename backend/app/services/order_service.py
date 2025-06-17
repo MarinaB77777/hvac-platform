@@ -6,6 +6,7 @@ from app.models.order import Order, OrderStatus
 def create_order(db: Session, client_id: int, data: dict):
     order = Order(
         client_id=client_id,
+        hvac_id=data.get("hvac_id"),
         address=data.get("address"),
         lat=data.get("lat"),
         lng=data.get("lng"),

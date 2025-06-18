@@ -45,6 +45,9 @@ def complete_order(db: Session, hvac_id: int, order_id: int):
     db.commit()
     return order
 
+def get_orders_for_client(db: Session, client_id: int):
+    return db.query(Order).filter(Order.client_id == client_id).all()
+
 def get_orders_for_hvac(db: Session, hvac_id: int):
     return db.query(Order).filter(Order.hvac_id == hvac_id).all()
 

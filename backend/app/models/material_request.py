@@ -11,3 +11,4 @@ class MaterialRequest(Base):
     brand = Column(String)
     qty = Column(Integer, nullable=False)
     status = Column(String, default="pending")
+    unit_price = Column(Integer)

@@ -18,7 +18,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         raise HTTPException(status_code=400, detail="Неверное имя пользователя или пароль")
 
     access_token = create_access_token(
-        data={"sub": user.phone},  # ✅ В sub записываем phone
+        data={"sub": str(user.id)}
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     return {"access_token": access_token, "token_type": "bearer"}

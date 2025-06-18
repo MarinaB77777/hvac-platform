@@ -10,8 +10,12 @@ router = APIRouter()
 @router.get("/orders/client")
 def get_orders_for_client(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
+    print("👤 current_user.id:", current_user.id)
+    print("🎭 current_user.role:", current_user.role)
+
     if current_user.role != "client":
         raise HTTPException(status_code=403, detail="Only clients can access this.")
+    
     return db.query(Order).filter(Order.client_id == current_user.id).all()

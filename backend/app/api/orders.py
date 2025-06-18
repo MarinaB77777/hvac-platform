@@ -31,6 +31,12 @@ def get(order_id: int, db: Session = Depends(get_db), current_user: User = Depen
         raise HTTPException(status_code=404, detail="Order not found")
     return order
 
+@router.get("/orders/client")
+def get_orders_for_client(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.role != "client":
+        raise HTTPException(status_code=403, detail="Only clients can access this.")
+    return db.query(Order).filter(Order.client_id == current_user.id).all()
+    
 @router.get("/orders/available")
 def available(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return list_available_orders(db)

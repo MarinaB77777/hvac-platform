@@ -5,9 +5,9 @@ from app.models.order import Order
 from app.models.user import User
 from app.services.auth import get_current_user
 
-router = APIRouter()
+router = APIRouter(prefix="/orders")
 
-@router.get("/orders/client")
+@router.get("/client")
 def get_orders_for_client(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

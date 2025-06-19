@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import client_api
+from app.api import hvac_api
+
 
 # 🔗 Импорт маршрутов (роутеров)
 from app.api import (
@@ -43,6 +45,7 @@ app.include_router(warehouse_api.router)
 app.include_router(orders.router)
 app.include_router(manager_api.router)
 app.include_router(client_api.router)
+app.include_router(hvac_api.router)
 
 # 🛠️ Создаём ВСЕ таблицы (важно для корректной работы ALTER TABLE)
 print("⏳ Пробуем создать все таблицы...")

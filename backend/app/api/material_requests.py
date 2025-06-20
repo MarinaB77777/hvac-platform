@@ -2,70 +2,123 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
-from app.services.auth import get_current_user
 from app.db import get_db
+from app.services.auth import get_current_user
+from app.models.user import User
+from app.models.material import Material
 from app.models.material_request import MaterialRequest
-from app.models.material import Material  # чтобы проверять material_id
 
-router = APIRouter()
+router = APIRouter(prefix="/material-requests", tags=["Material Requests"])
 
 
-@router.post("/material-requests/")
-def create_request(data: dict = Body(...), db: Session = Depends(get_db), user=Depends(get_current_user)):
-    if user["role"] != "hvac":
+# 🔹 Создать заявку на материал (HVAC)
+@router.post("/")
+def create_material_request(
+    data: dict = Body(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "hvac":
         raise HTTPException(status_code=403, detail="Only HVAC can create requests")
 
-    # Проверка, существует ли такой материал
     material = db.query(Material).filter(Material.id == data["material_id"]).first()
     if not material:
         raise HTTPException(status_code=404, detail="Material not found")
 
-    req = MaterialRequest(
-        hvac_id=user["id"],
+    request = MaterialRequest(
+        hvac_id=current_user.id,
         order_id=data.get("order_id"),
-        material_id=material.id,
+        material_id=data["material_id"],
         quantity=data["quantity"],
-        status="pending"
+        status="pending",
     )
-    db.add(req)
+    db.add(request)
     db.commit()
-    db.refresh(req)
-    return req
+    db.refresh(request)
+    return request
 
 
-@router.get("/material-requests/")
-def list_requests(db: Session = Depends(get_db), user=Depends(get_current_user)):
-    if user["role"] != "warehouse":
-        raise HTTPException(status_code=403, detail="Only warehouse sees all requests")
+# 🔹 Получить все заявки (warehouse)
+@router.get("/")
+def list_all_requests(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "warehouse":
+        raise HTTPException(status_code=403, detail="Only warehouse can view all requests")
     return db.query(MaterialRequest).all()
 
 
-@router.post("/material-requests/{req_id}/confirm")
-def confirm_request(req_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
-    if user["role"] != "warehouse":
-        raise HTTPException(status_code=403, detail="Only warehouse can confirm")
+# 🔹 Подтвердить заявку
+@router.post("/{request_id}/confirm")
+def confirm_request(
+    request_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "warehouse":
+        raise HTTPException(status_code=403, detail="Only warehouse can confirm requests")
 
-    req = db.query(MaterialRequest).filter(MaterialRequest.id == req_id).first()
-    if not req:
+    request = db.query(MaterialRequest).filter(MaterialRequest.id == request_id).first()
+    if not request:
         raise HTTPException(status_code=404, detail="Request not found")
 
-    req.status = "confirmed"
+    request.status = "confirmed"
     db.commit()
-    return req
+    db.refresh(request)
+    return request
 
 
-@router.post("/material-requests/{req_id}/issue")
-def issue_request(req_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
-    if user["role"] != "warehouse":
-        raise HTTPException(status_code=403, detail="Only warehouse can issue")
+# 🔹 Выдать материал по заявке
+@router.post("/{request_id}/issue")
+def issue_material(
+    request_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "warehouse":
+        raise HTTPException(status_code=403, detail="Only warehouse can issue materials")
 
-    req = db.query(MaterialRequest).filter(MaterialRequest.id == req_id).first()
-    if not req:
+    request = db.query(MaterialRequest).filter(MaterialRequest.id == request_id).first()
+    if not request:
         raise HTTPException(status_code=404, detail="Request not found")
 
-    if req.status != "confirmed":
+    if request.status != "confirmed":
         raise HTTPException(status_code=400, detail="Request must be confirmed first")
 
-    req.status = "issued"
+    request.status = "issued"
     db.commit()
-    return req
+    db.refresh(request)
+    return request
+
+# 🔹 Получить только свои заявки (HVAC)
+@router.get("/my-requests")
+def get_my_requests(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "hvac":
+        raise HTTPException(status_code=403, detail="Only HVAC can view their own requests")
+
+    return db.query(MaterialRequest).filter(MaterialRequest.hvac_id == current_user.id).all()
+
+
+# 🔹 Получить заявки по конкретному заказу
+@router.get("/by-order/{order_id}")
+def get_requests_by_order(
+    order_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # Доступ разрешён warehouse, manager и hvac, если заявка его
+    allowed_roles = ["warehouse", "manager", "hvac"]
+    if current_user.role not in allowed_roles:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    query = db.query(MaterialRequest).filter(MaterialRequest.order_id == order_id)
+
+    if current_user.role == "hvac":
+        query = query.filter(MaterialRequest.hvac_id == current_user.id)
+
+    return query.all()
+

@@ -3,14 +3,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from app.db import Base
-from app.api import auth, client_api, manager_api, warehouse_api, hvac_api
+from app.api import (
+    auth,
+    client_api,
+    manager_api,
+    warehouse_api,
+    hvac_api,
+    material_requests,  # ✅ добавлено
+)
 from app.db import engine, get_db
 from app.models.material import Material
 from app.models.material_request import MaterialRequest
 
 app = FastAPI()
 
-origins = ["*"]  # Разрешаем любые источники — можно сузить
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,17 +27,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 🔗 Роутеры
+# 🔗 Подключение роутеров
 app.include_router(auth.router)
 app.include_router(client_api.router)
 app.include_router(manager_api.router)
 app.include_router(warehouse_api.router)
 app.include_router(hvac_api.router)
+app.include_router(material_requests.router)  # ✅ обязательно
 
 # 📦 Создание таблиц
 Base.metadata.create_all(bind=engine)
 
-# 🛠️ Миграции (если столбцов нет — создаём)
+# 🛠️ Миграции (добавление недостающих столбцов)
 with engine.connect() as conn:
     conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS model TEXT"))
     conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS material_type TEXT"))
@@ -45,7 +53,7 @@ with engine.connect() as conn:
     conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS qty_issued INTEGER"))
     conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS status TEXT"))
 
-# 🧪 Debug endpoint: добавить материал вручную
+# 🧪 Debug endpoint — вручную создать материал
 @app.post("/debug/add-material")
 def debug_add_material(db=next(get_db())):
     material = Material(

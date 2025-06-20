@@ -1,8 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-
-# 🔗 Импорт маршрутов (роутеров)
 from app.api import (
     login,
     user_api,
@@ -12,24 +10,22 @@ from app.api import (
     manager_api,
     client_api,
     hvac_api,
-    materials, 
+    materials,
 )
 
 from app.db import engine, Base
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
-# 🧩 Импортируем все модели (важно для создания таблиц)
+# Импорт всех моделей
 from app.models import user, order, warehouse, material_request, material
 
 app = FastAPI()
 
-# 📍 Корневой эндпоинт
 @app.get("/")
 def root():
     return {"message": "HVAC Platform API is up and running"}
 
-# 🌍 Разрешаем CORS для клиента на Expo
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -38,7 +34,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 🔧 Подключаем все роутеры
 app.include_router(login.router)
 app.include_router(user_api.router)
 app.include_router(material_requests.router)
@@ -47,9 +42,8 @@ app.include_router(orders.router)
 app.include_router(manager_api.router)
 app.include_router(client_api.router)
 app.include_router(hvac_api.router)
-app.include_router(materials.router)  
+app.include_router(materials.router)
 
-# 🛠️ Создаём ВСЕ таблицы (важно для корректной работы ALTER TABLE)
 print("⏳ Пробуем создать все таблицы...")
 try:
     Base.metadata.create_all(bind=engine)
@@ -57,7 +51,6 @@ try:
 except Exception as e:
     print("⚠️ Не удалось создать таблицы:", e)
 
-# 🔧 Добавляем недостающие столбцы, если нужно
 with engine.connect() as conn:
     def safe_alter(sql):
         try:
@@ -76,15 +69,15 @@ with engine.connect() as conn:
     safe_alter("ALTER TABLE users ADD COLUMN IF NOT EXISTS hashed_password VARCHAR;")
 
     # 🔹 Таблица materials
-   safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS stock_count INTEGER;")
-   safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS category VARCHAR;")
-   safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS brand VARCHAR;")
-   safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS specs VARCHAR;")
-   safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_usd INTEGER;")
-   safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_mxn INTEGER;")
-   safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS photo_url VARCHAR;")
-   safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS arrival_date DATE;")
-   safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS status VARCHAR;")    
+    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS stock_count INTEGER;")
+    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS category VARCHAR;")
+    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS brand VARCHAR;")
+    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS specs VARCHAR;")
+    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_usd INTEGER;")
+    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_mxn INTEGER;")
+    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS photo_url VARCHAR;")
+    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS arrival_date DATE;")
+    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS status VARCHAR;")
 
     # 🔹 Таблица material_requests
     safe_alter("ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS order_id INTEGER;")

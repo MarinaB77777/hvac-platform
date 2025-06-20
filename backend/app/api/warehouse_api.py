@@ -1,55 +1,49 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db import get_db
-from app.services.auth import get_current_user
 from app.models.material_request import MaterialRequest
+from app.services.auth import get_current_user
 
 router = APIRouter()
 
-@router.post("/material-requests/")
-def create_request(data: dict = Body(...), db: Session = Depends(get_db), user=Depends(get_current_user)):
-    if user["role"] != "hvac":
-        raise HTTPException(status_code=403, detail="Only HVAC can create requests")
-
-    req = MaterialRequest(
-        hvac_id=user["id"],
-        order_id=data["order_id"],
-        name=data["name"],
-        brand=data.get("brand"),
-        qty=data["qty"],
-        status="pending"
-    )
-    db.add(req)
-    db.commit()
-    db.refresh(req)
-    return req
-
+# 📦 Получить все заявки на материалы (только для склада)
 @router.get("/material-requests/")
-def list_requests(db: Session = Depends(get_db), user=Depends(get_current_user)):
+def get_all_requests(user=Depends(get_current_user), db: Session = Depends(get_db)):
     if user["role"] != "warehouse":
-        raise HTTPException(status_code=403, detail="Only warehouse sees all requests")
+        raise HTTPException(status_code=403, detail="Access denied: warehouse only")
     return db.query(MaterialRequest).all()
 
-@router.post("/material-requests/{req_id}/confirm")
-def confirm_request(req_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
-    if user["role"] != "warehouse":
-        raise HTTPException(status_code=403, detail="Only warehouse can confirm")
-    req = db.query(MaterialRequest).filter(MaterialRequest.id == req_id).first()
-    if not req:
-        raise HTTPException(status_code=404, detail="Request not found")
-    req.status = "confirmed"
-    db.commit()
-    return req
 
-@router.post("/material-requests/{req_id}/issue")
-def issue_request(req_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
+# ✅ Подтвердить заявку (warehouse)
+@router.post("/material-requests/{request_id}/confirm")
+def confirm_request(request_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
     if user["role"] != "warehouse":
-        raise HTTPException(status_code=403, detail="Only warehouse can issue")
-    req = db.query(MaterialRequest).filter(MaterialRequest.id == req_id).first()
-    if not req:
+        raise HTTPException(status_code=403, detail="Access denied: warehouse only")
+
+    request = db.query(MaterialRequest).filter(MaterialRequest.id == request_id).first()
+    if not request:
         raise HTTPException(status_code=404, detail="Request not found")
-    if req.status != "confirmed":
-        raise HTTPException(status_code=400, detail="Request must be confirmed first")
-    req.status = "issued"
+
+    request.status = "confirmed"
     db.commit()
-    return req
+    db.refresh(request)
+    return request
+
+
+# 🚚 Выдать заявку (warehouse)
+@router.post("/material-requests/{request_id}/issue")
+def issue_request(request_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
+    if user["role"] != "warehouse":
+        raise HTTPException(status_code=403, detail="Access denied: warehouse only")
+
+    request = db.query(MaterialRequest).filter(MaterialRequest.id == request_id).first()
+    if not request:
+        raise HTTPException(status_code=404, detail="Request not found")
+
+    if request.status != "confirmed":
+        raise HTTPException(status_code=400, detail="Request must be confirmed before issuing")
+
+    request.status = "issued"
+    db.commit()
+    db.refresh(request)
+    return request

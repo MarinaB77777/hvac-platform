@@ -1,3 +1,5 @@
+# app/api/warehouse_api.py
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db import get_db
@@ -13,7 +15,6 @@ def get_all_requests(user=Depends(get_current_user), db: Session = Depends(get_d
         raise HTTPException(status_code=403, detail="Access denied: warehouse only")
     return db.query(MaterialRequest).all()
 
-
 # ✅ Подтвердить заявку (warehouse)
 @router.post("/material-requests/{request_id}/confirm")
 def confirm_request(request_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
@@ -28,7 +29,6 @@ def confirm_request(request_id: int, user=Depends(get_current_user), db: Session
     db.commit()
     db.refresh(request)
     return request
-
 
 # 🚚 Выдать заявку (warehouse)
 @router.post("/material-requests/{request_id}/issue")
@@ -47,3 +47,13 @@ def issue_request(request_id: int, user=Depends(get_current_user), db: Session =
     db.commit()
     db.refresh(request)
     return request
+
+# 🛠️ Отладка: получить список колонок таблицы materials
+@router.get("/debug/materials-columns")
+def debug_materials_columns(db: Session = Depends(get_db)):
+    result = db.execute("""
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'materials'
+    """)
+    return [row[0] for row in result]

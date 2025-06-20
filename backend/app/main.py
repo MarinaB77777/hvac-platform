@@ -4,7 +4,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from app.db import engine, Base
 
-# 🔗 Импорт роутеров
+# 📦 Импорт роутеров
 from app.api import (
     login,
     user_api,
@@ -17,7 +17,7 @@ from app.api import (
     materials,
 )
 
-# 📦 Импорт моделей
+# 🧩 Импорт моделей (важно для создания таблиц)
 from app.models import user, order, warehouse, material_request, material
 
 app = FastAPI()
@@ -26,7 +26,7 @@ app = FastAPI()
 def root():
     return {"message": "HVAC Platform API is up and running"}
 
-# 🌐 CORS
+# 🌍 CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -35,7 +35,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 🔌 Подключение роутеров
+# 🔧 Подключение роутеров
 app.include_router(login.router)
 app.include_router(user_api.router)
 app.include_router(material_requests.router)
@@ -54,7 +54,7 @@ try:
 except Exception as e:
     print("⚠️ Не удалось создать таблицы:", e)
 
-# 🧱 Добавление нужных колонок вручную
+# 🧱 ALTER TABLE
 with engine.connect() as conn:
     def safe_alter(sql):
         try:
@@ -99,7 +99,7 @@ with engine.connect() as conn:
 
     print("🔧 Добавление завершено.\n")
 
-# 🛠️ Проверочный маршрут: какие колонки есть в таблице materials
+# 🧪 Отладочный эндпоинт для проверки столбцов в таблице materials
 @app.get("/debug/materials-columns")
 def debug_materials_columns():
     try:

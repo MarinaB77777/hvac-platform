@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, String, Float, Date
 from app.db import Base
 
 class Material(Base):
-    tablename = "materials"
+    __tablename__ = "materials"
 
     id = Column(Integer, primary_key=True, index=True)
 

@@ -92,6 +92,19 @@ with engine.connect() as conn:
     safe_alter("ALTER TABLE orders ADD COLUMN IF NOT EXISTS repair_cost INTEGER;")
     safe_alter("ALTER TABLE orders ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;")
 
+    @app.get("/debug/materials-columns")
+def debug_materials_columns():
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'materials'
+            """))
+            return [row[0] for row in result]
+    except Exception as e:
+        return {"error": str(e)}
+
     print("🔧 Добавление завершено.\n")
 
 # 🛠️ Жёсткая вставка на случай, если category не добавляется

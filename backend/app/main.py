@@ -28,7 +28,6 @@ app.add_middleware(
 )
 
 # 🔗 Подключение роутеров
-app.include_router(auth.router)
 app.include_router(client_api.router)
 app.include_router(manager_api.router)
 app.include_router(warehouse_api.router)

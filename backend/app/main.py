@@ -1,13 +1,6 @@
-# app/main.py
-
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
-from app.db import engine, Base, get_db
 
-# 🔹 Импорт роутеров
 from app.api import (
     login,
     user_api,
@@ -20,7 +13,11 @@ from app.api import (
     materials,
 )
 
-# 🔹 Импорт моделей (для создания таблиц)
+from app.db import engine, Base
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+
+# Импорт всех моделей
 from app.models import user, order, warehouse, material_request, material
 
 app = FastAPI()
@@ -29,7 +26,6 @@ app = FastAPI()
 def root():
     return {"message": "HVAC Platform API is up and running"}
 
-# 🔹 CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -38,7 +34,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 🔹 Регистрация роутеров
 app.include_router(login.router)
 app.include_router(user_api.router)
 app.include_router(material_requests.router)
@@ -49,7 +44,6 @@ app.include_router(client_api.router)
 app.include_router(hvac_api.router)
 app.include_router(materials.router)
 
-# 🔹 Создание таблиц
 print("⏳ Пробуем создать все таблицы...")
 try:
     Base.metadata.create_all(bind=engine)
@@ -57,7 +51,6 @@ try:
 except Exception as e:
     print("⚠️ Не удалось создать таблицы:", e)
 
-# 🔧 Добавление нужных столбцов
 with engine.connect() as conn:
     def safe_alter(sql):
         try:
@@ -77,7 +70,7 @@ with engine.connect() as conn:
 
     # 🔹 Таблица materials
     safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS stock INTEGER;")
-    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS category VARCHAR;")
+    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS material_type VARCHAR;")  # заменили category
     safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS brand VARCHAR;")
     safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS specs VARCHAR;")
     safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_usd INTEGER;")
@@ -101,36 +94,3 @@ with engine.connect() as conn:
     safe_alter("ALTER TABLE orders ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;")
 
     print("🔧 Добавление завершено.\n")
-
-# 🔍 Debug endpoint для проверки колонок
-@app.get("/debug/materials-columns")
-def debug_materials_columns(db: Session = Depends(get_db)):
-    try:
-        result = db.execute(text("""
-        SELECT column_name 
-            FROM information_schema.columns 
-            WHERE table_name = 'materials'
-        """))
-        return [row[0] for row in result]
-    except Exception as e:
-        return {"error": str(e)}
-
-# ➕ Debug endpoint для добавления материала
-@app.post("/debug/add-material")
-def debug_add_material(db: Session = Depends(get_db)):
-    from app.models.material import Material
-    material = Material(
-        name="Фреон R410",
-        brand="DuPont",
-        category="Фреон",
-        specs="R410 11.3kg",
-        price_usd=120,
-        price_mxn=2100,
-        stock=5,
-        photo_url="https://example.com/freon.jpg",
-        status="available"
-    )
-    db.add(material)
-    db.commit()
-    db.refresh(material)
-    return material

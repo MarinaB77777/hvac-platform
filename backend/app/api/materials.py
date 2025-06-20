@@ -1,21 +1,13 @@
-from fastapi import APIRouter, Query
+# app/api/materials.py
+
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from app.db import get_db
+from app.models.material import Material
+from app.services.auth import get_current_user
 
 router = APIRouter()
 
-# Простой mock-справочник материалов
-materials_db = [
-    {"name": "Фреон", "brand": "R410", "unit_price": 15},
-    {"name": "Компрессор", "brand": "Hitachi", "unit_price": 120},
-    {"name": "Фильтр", "brand": "Panasonic", "unit_price": 40},
-    {"name": "Термостат", "brand": "Danfoss", "unit_price": 60}
-]
-
 @router.get("/materials/")
-def list_materials(q: str = Query(default=None)):
-    if q:
-        q_lower = q.lower()
-        return [
-            m for m in materials_db
-            if q_lower in m["name"].lower() or q_lower in m["brand"].lower()
-        ]
-    return materials_db
+def get_all_materials(db: Session = Depends(get_db), user=Depends(get_current_user)):
+    return db.query(Material).all()

@@ -5,10 +5,8 @@ class MaterialRequest(Base):
     __tablename__ = "material_requests"
 
     id = Column(Integer, primary_key=True, index=True)
-    hvac_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    order_id = Column(Integer, nullable=False)
-    name = Column(String, nullable=False)
-    brand = Column(String)
-    qty = Column(Integer, nullable=False)
+    material_id = Column(Integer, ForeignKey("materials.id"))
+    order_id = Column(Integer, nullable=True)
+    hvac_id = Column(Integer, nullable=False)
+    quantity = Column(Integer, nullable=False)
     status = Column(String, default="pending")
-    unit_price = Column(Integer)

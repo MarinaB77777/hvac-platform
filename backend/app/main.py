@@ -78,7 +78,6 @@ with engine.connect() as conn:
     safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS photo_url VARCHAR;")
     safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS arrival_date DATE;")
     safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS status VARCHAR;")
-    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS category VARCHAR;")
 
     # 🔹 Таблица material_requests
     safe_alter("ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS order_id INTEGER;")

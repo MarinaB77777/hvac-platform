@@ -3,13 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from app.db import Base
+from app.services import auth  # ✅ исправлено
 from app.api import (
-    auth,
     client_api,
     manager_api,
     warehouse_api,
     hvac_api,
-    material_requests,  # ✅ добавлено
+    material_requests,
 )
 from app.db import engine, get_db
 from app.models.material import Material

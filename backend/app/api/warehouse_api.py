@@ -3,57 +3,62 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db import get_db
-from app.models.material_request import MaterialRequest
+from app.models.user import User
+from app.models.material import Material
 from app.services.auth import get_current_user
 
-router = APIRouter()
+router = APIRouter(prefix="/warehouse", tags=["Warehouse"])
 
-# 📦 Получить все заявки на материалы (только для склада)
-@router.get("/material-requests/")
-def get_all_requests(user=Depends(get_current_user), db: Session = Depends(get_db)):
-    if user["role"] != "warehouse":
-        raise HTTPException(status_code=403, detail="Access denied: warehouse only")
-    return db.query(MaterialRequest).all()
+# ✅ Просмотр всех материалов на складе (только для warehouse, hvac, manager)
+@router.get("/materials")
+def get_all_materials(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role not in ["warehouse", "hvac", "manager"]:
+        raise HTTPException(status_code=403, detail="Access denied.")
+    return db.query(Material).all()
 
-# ✅ Подтвердить заявку (warehouse)
-@router.post("/material-requests/{request_id}/confirm")
-def confirm_request(request_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
-    if user["role"] != "warehouse":
-        raise HTTPException(status_code=403, detail="Access denied: warehouse only")
 
-    request = db.query(MaterialRequest).filter(MaterialRequest.id == request_id).first()
-    if not request:
-        raise HTTPException(status_code=404, detail="Request not found")
+# ✅ Добавить новый материал (только для warehouse)
+@router.post("/materials")
+def add_material(
+    data: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "warehouse":
+        raise HTTPException(status_code=403, detail="Only warehouse staff can add materials.")
 
-    request.status = "confirmed"
+    material = Material(
+        name=data.get("name"),
+        brand=data.get("brand"),
+        category=data.get("category"),
+        specs=data.get("specs"),
+        price_usd=data.get("price_usd"),
+        price_mxn=data.get("price_mxn"),
+        stock=data.get("stock"),
+        photo_url=data.get("photo_url"),
+        arrival_date=data.get("arrival_date"),
+        status=data.get("status"),
+    )
+    db.add(material)
     db.commit()
-    db.refresh(request)
-    return request
+    db.refresh(material)
+    return material
 
-# 🚚 Выдать заявку (warehouse)
-@router.post("/material-requests/{request_id}/issue")
-def issue_request(request_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
-    if user["role"] != "warehouse":
-        raise HTTPException(status_code=403, detail="Access denied: warehouse only")
 
-    request = db.query(MaterialRequest).filter(MaterialRequest.id == request_id).first()
-    if not request:
-        raise HTTPException(status_code=404, detail="Request not found")
+# ✅ Получить материал по ID
+@router.get("/materials/{material_id}")
+def get_material_by_id(
+    material_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role not in ["warehouse", "hvac", "manager"]:
+        raise HTTPException(status_code=403, detail="Access denied.")
 
-    if request.status != "confirmed":
-        raise HTTPException(status_code=400, detail="Request must be confirmed before issuing")
-
-    request.status = "issued"
-    db.commit()
-    db.refresh(request)
-    return request
-
-# 🛠️ Отладка: получить список колонок таблицы materials
-@router.get("/debug/materials-columns")
-def debug_materials_columns(db: Session = Depends(get_db)):
-    result = db.execute("""
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = 'materials'
-    """)
-    return [row[0] for row in result]
+    material = db.query(Material).filter(Material.id == material_id).first()
+    if not material:
+        raise HTTPException(status_code=404, detail="Material not found.")
+    return material

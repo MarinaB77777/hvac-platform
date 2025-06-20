@@ -31,16 +31,17 @@ def add_material(
         raise HTTPException(status_code=403, detail="Only warehouse staff can add materials.")
 
     material = Material(
-        name=data.get("name"),
-        brand=data.get("brand"),
-        category=data.get("category"),
-        specs=data.get("specs"),
-        price_usd=data.get("price_usd"),
-        price_mxn=data.get("price_mxn"),
-        stock=data.get("stock"),
-        photo_url=data.get("photo_url"),
-        arrival_date=data.get("arrival_date"),
-        status=data.get("status"),
+    name=data.get("name"),
+    brand=data.get("brand"),
+    model=data.get("model"),
+    material_type=data.get("material_type"),
+    specs=data.get("specs"),
+    price_usd=data.get("price_usd"),
+    price_mxn=data.get("price_mxn"),
+    stock=data.get("stock"),
+    photo_url=data.get("photo_url"),
+    arrival_date=data.get("arrival_date"),
+    status=data.get("status"),
     )
     db.add(material)
     db.commit()

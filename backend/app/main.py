@@ -69,7 +69,7 @@ with engine.connect() as conn:
     safe_alter("ALTER TABLE users ADD COLUMN IF NOT EXISTS hashed_password VARCHAR;")
 
     # 🔹 Таблица materials
-    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS stock_count INTEGER;")
+    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS stock INTEGER;")
     safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS category VARCHAR;")
     safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS brand VARCHAR;")
     safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS specs VARCHAR;")

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from app.db import Base
-from app.services import auth  # ✅ исправлено
+from app.api import auth # ✅ исправлено
 from app.api import (
     client_api,
     manager_api,

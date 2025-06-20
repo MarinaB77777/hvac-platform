@@ -1,21 +1,30 @@
-from sqlalchemy import Column, Integer, String, Date
-from app.db import Base
-from datetime import datetime
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.db import get_db
+from app.models.material import Material
+from app.services.auth import get_current_user
 
-class Material(Base):
-    __tablename__ = "materials"
+router = APIRouter()
 
-materials_db = [
-    {"id": 1, "name": "Фреон", "brand": "R410", "unit_price": 15},
-    {"id": 2, "name": "Компрессор", "brand": "Hitachi", "unit_price": 120},
-    {"id": 3, "name": "Фильтр", "brand": "Panasonic", "unit_price": 40},
-    {"id": 4, "name": "Термостат", "brand": "Danfoss", "unit_price": 60}
-]
+@router.get("/materials/")
+def get_all_materials(user=Depends(get_current_user), db: Session = Depends(get_db)):
+    if user["role"] not in ["warehouse", "hvac", "manager"]:
+        raise HTTPException(status_code=403, detail="Access denied")
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    brand = Column(String)
-    stock_count = Column(Integer)
-    photo_url = Column(String)
-    status = Column(String)
-    arrival_date = Column(Date, default=datetime.utcnow)  # ✅ автоматическая дата
+    materials = db.query(Material).all()
+    return [
+        {
+            "id": m.id,
+            "name": m.name,
+            "brand": m.brand,
+            "stock": m.stock,
+            "category": m.category,
+            "specs": m.specs,
+            "price_usd": m.price_usd,
+            "price_mxn": m.price_mxn,
+            "photo_url": m.photo_url,
+            "arrival_date": m.arrival_date.isoformat() if m.arrival_date else None,
+            "status": m.status,
+        }
+        for m in materials
+    ]

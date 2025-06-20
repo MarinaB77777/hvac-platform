@@ -28,11 +28,13 @@ app.add_middleware(
 )
 
 # 🔗 Подключение роутеров
+app.include_router(login.router)
+app.include_router(user_api.router)
 app.include_router(client_api.router)
 app.include_router(manager_api.router)
 app.include_router(warehouse_api.router)
 app.include_router(hvac_api.router)
-app.include_router(material_requests.router)  # ✅ обязательно
+app.include_router(material_requests.router)
 
 # 📦 Создание таблиц
 Base.metadata.create_all(bind=engine)

@@ -4,6 +4,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from app.db import engine, Base
 
+# 🔗 Импорт роутеров
 from app.api import (
     login,
     user_api,
@@ -16,7 +17,7 @@ from app.api import (
     materials,
 )
 
-# Импорт всех моделей
+# 📦 Импорт моделей
 from app.models import user, order, warehouse, material_request, material
 
 app = FastAPI()
@@ -25,6 +26,7 @@ app = FastAPI()
 def root():
     return {"message": "HVAC Platform API is up and running"}
 
+# 🌐 CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -33,6 +35,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 🔌 Подключение роутеров
 app.include_router(login.router)
 app.include_router(user_api.router)
 app.include_router(material_requests.router)
@@ -43,6 +46,7 @@ app.include_router(client_api.router)
 app.include_router(hvac_api.router)
 app.include_router(materials.router)
 
+# 🛠️ Создание таблиц
 print("⏳ Пробуем создать все таблицы...")
 try:
     Base.metadata.create_all(bind=engine)
@@ -50,6 +54,7 @@ try:
 except Exception as e:
     print("⚠️ Не удалось создать таблицы:", e)
 
+# 🧱 Добавление нужных колонок вручную
 with engine.connect() as conn:
     def safe_alter(sql):
         try:
@@ -92,33 +97,18 @@ with engine.connect() as conn:
     safe_alter("ALTER TABLE orders ADD COLUMN IF NOT EXISTS repair_cost INTEGER;")
     safe_alter("ALTER TABLE orders ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;")
 
-    @app.get("/debug/materials-columns")
+    print("🔧 Добавление завершено.\n")
+
+# 🛠️ Проверочный маршрут: какие колонки есть в таблице materials
+@app.get("/debug/materials-columns")
 def debug_materials_columns():
     try:
         with engine.connect() as conn:
             result = conn.execute(text("""
-                SELECT column_name 
+                SELECT column_name
                 FROM information_schema.columns 
                 WHERE table_name = 'materials'
             """))
             return [row[0] for row in result]
     except Exception as e:
         return {"error": str(e)}
-
-    print("🔧 Добавление завершено.\n")
-
-# 🛠️ Жёсткая вставка на случай, если category не добавляется
-def ensure_category_column_exists():
-    with engine.connect() as conn:
-        result = conn.execute(text("""
-            SELECT column_name 
-            FROM information_schema.columns 
-            WHERE table_name = 'materials' AND column_name = 'category';
-        """))
-        if not result.fetchone():
-            conn.execute(text('ALTER TABLE materials ADD COLUMN category VARCHAR;'))
-            print("✅ [Hard] Колонка 'category' добавлена вручную")
-        else:
-            print("ℹ️ [Hard] Колонка 'category' уже существует")
-
-ensure_category_column_exists()

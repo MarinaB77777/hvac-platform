@@ -1,29 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from app.db import get_db
-from app.services.auth import get_current_user
+# app/models/material.py
 
-router = APIRouter()
+from sqlalchemy import Column, Integer, String, Date
+from app.db import Base
+from datetime import datetime
 
-@router.get("/materials/")
-def get_all_materials(user=Depends(get_current_user), db: Session = Depends(get_db)):
-    if user["role"] not in ["warehouse", "hvac", "manager"]:
-        raise HTTPException(status_code=403, detail="Access denied")
+class Material(Base):
+    __tablename__ = "materials"
 
-    materials = db.query(Material).all()
-    return [
-        {
-            "id": m.id,
-            "name": m.name,
-            "brand": m.brand,
-            "stock": m.stock,
-            "category": m.category,
-            "specs": m.specs,
-            "price_usd": m.price_usd,
-            "price_mxn": m.price_mxn,
-            "photo_url": m.photo_url,
-            "arrival_date": m.arrival_date.isoformat() if m.arrival_date else None,
-            "status": m.status,
-        }
-        for m in materials
-    ]
+    id = Column(Integer, primary_key=True, index=True)  # уникальный идентификатор
+    name = Column(String, nullable=False)               # наименование материала
+    brand = Column(String)                              # бренд
+    category = Column(String)                           # категория (фреон, компрессор и т.д.)
+    specs = Column(String)                              # характеристики или модель
+    price_usd = Column(Integer)                         # цена в долларах
+    price_mxn = Column(Integer)                         # цена в мексиканских песо
+    stock = Column(Integer, default=0)                  # количество на складе
+    photo_url = Column(String)                          # ссылка на изображение
+    arrival_date = Column(Date, default=datetime.utcnow) # дата поступления
+    status = Column(String, default="available")        # статус материала (например: available, issued)

@@ -1,96 +1,67 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from app.api import (
-    login,
-    user_api,
-    material_requests,
-    warehouse_api,
-    orders,
-    manager_api,
-    client_api,
-    hvac_api,
-    materials,
-)
-
-from app.db import engine, Base
-from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
-
-# Импорт всех моделей
-from app.models import user, order, warehouse, material_request, material
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
+from app.db import Base
+from app.api import auth, client_api, manager_api, warehouse_api, hvac_api
+from app.db import engine, get_db
+from app.models.material import Material
+from app.models.material_request import MaterialRequest
 
 app = FastAPI()
 
-@app.get("/")
-def root():
-    return {"message": "HVAC Platform API is up and running"}
+origins = ["*"]  # Разрешаем любые источники — можно сузить
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(login.router)
-app.include_router(user_api.router)
-app.include_router(material_requests.router)
-app.include_router(warehouse_api.router)
-app.include_router(orders.router)
-app.include_router(manager_api.router)
+# 🔗 Роутеры
+app.include_router(auth.router)
 app.include_router(client_api.router)
+app.include_router(manager_api.router)
+app.include_router(warehouse_api.router)
 app.include_router(hvac_api.router)
-app.include_router(materials.router)
 
-print("⏳ Пробуем создать все таблицы...")
-try:
-    Base.metadata.create_all(bind=engine)
-    print("✅ Все таблицы созданы.")
-except Exception as e:
-    print("⚠️ Не удалось создать таблицы:", e)
+# 📦 Создание таблиц
+Base.metadata.create_all(bind=engine)
 
+# 🛠️ Миграции (если столбцов нет — создаём)
 with engine.connect() as conn:
-    def safe_alter(sql):
-        try:
-            conn.execute(text(sql))
-            print(f"✅ Выполнено: {sql}")
-        except Exception as e:
-            print(f"⚠️ Пропущено: {sql} — {e}")
+    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS model TEXT"))
+    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS material_type TEXT"))
+    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS specs TEXT"))
+    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_usd INTEGER"))
+    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_mxn INTEGER"))
+    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS stock INTEGER"))
+    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS photo_url TEXT"))
+    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS arrival_date TEXT"))
+    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS issued_date TEXT"))
+    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS issued_to_hvac INTEGER"))
+    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS qty_issued INTEGER"))
+    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS status TEXT"))
 
-    print("\n🔧 Добавление нужных столбцов:")
-
-    # 🔹 Таблица users
-    safe_alter("ALTER TABLE users ADD COLUMN IF NOT EXISTS location VARCHAR;")
-    safe_alter("ALTER TABLE users ADD COLUMN IF NOT EXISTS qualification VARCHAR;")
-    safe_alter("ALTER TABLE users ADD COLUMN IF NOT EXISTS rate INTEGER;")
-    safe_alter("ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR;")
-    safe_alter("ALTER TABLE users ADD COLUMN IF NOT EXISTS hashed_password VARCHAR;")
-
-    # 🔹 Таблица materials
-    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS stock INTEGER;")
-    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS material_type VARCHAR;")  # заменили category
-    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS brand VARCHAR;")
-    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS specs VARCHAR;")
-    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_usd INTEGER;")
-    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_mxn INTEGER;")
-    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS photo_url VARCHAR;")
-    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS arrival_date DATE;")
-    safe_alter("ALTER TABLE materials ADD COLUMN IF NOT EXISTS status VARCHAR;")
-
-    # 🔹 Таблица material_requests
-    safe_alter("ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS order_id INTEGER;")
-    safe_alter("ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS hvac_id INTEGER;")
-    safe_alter("ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS quantity INTEGER;")
-    safe_alter("ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS status VARCHAR;")
-
-    # 🔹 Таблица orders
-    safe_alter("ALTER TABLE orders ADD COLUMN IF NOT EXISTS location VARCHAR;")
-    safe_alter("ALTER TABLE orders ADD COLUMN IF NOT EXISTS description TEXT;")
-    safe_alter("ALTER TABLE orders ADD COLUMN IF NOT EXISTS diagnostic_url VARCHAR;")
-    safe_alter("ALTER TABLE orders ADD COLUMN IF NOT EXISTS client_agreed BOOLEAN DEFAULT false;")
-    safe_alter("ALTER TABLE orders ADD COLUMN IF NOT EXISTS repair_cost INTEGER;")
-    safe_alter("ALTER TABLE orders ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;")
-
-    print("🔧 Добавление завершено.\n")
+# 🧪 Debug endpoint: добавить материал вручную
+@app.post("/debug/add-material")
+def debug_add_material(db=next(get_db())):
+    material = Material(
+        name="Фреон R410",
+        brand="DuPont",
+        model="R410",
+        material_type="фреон",
+        specs="R410 11.3kg",
+        price_usd=120,
+        price_mxn=2100,
+        stock=5,
+        photo_url="https://example.com/freon.jpg",
+        arrival_date="2025-06-19",
+        status="available"
+    )
+    db.add(material)
+    db.commit()
+    db.refresh(material)
+    return material

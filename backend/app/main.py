@@ -5,12 +5,17 @@ from sqlalchemy.orm import sessionmaker
 from app.db import Base
 from app.services.auth import get_current_user # ✅ исправлено
 from app.api import (
-    client_api,
-    manager_api,
-    warehouse_api,
-    hvac_api,
+    login,
+    user_api,
     material_requests,
+    warehouse_api,
+    orders,
+    manager_api,
+    client_api,
+    hvac_api,
+    materials, 
 )
+
 from app.db import engine, get_db
 from app.models.material import Material
 from app.models.material_request import MaterialRequest

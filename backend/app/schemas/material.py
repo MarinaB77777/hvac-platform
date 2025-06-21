@@ -20,5 +20,5 @@ class MaterialOut(BaseModel):
     qty_issued: Optional[int]
     status: Optional[str]
 
-    class Config:
-        orm_mode = True
+class Config:
+    from_attributes = True

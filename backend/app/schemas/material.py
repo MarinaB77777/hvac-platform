@@ -1,22 +1,24 @@
+# backend/app/schemas/material.py
 from pydantic import BaseModel
+from typing import Optional
 from datetime import date
 
-class MaterialSchema(BaseModel):
+class MaterialOut(BaseModel):
     id: int
     name: str
-    brand: str | None = None
-    model: str | None = None  # 🔧 Рекомендуется добавить (отсутствует в БД, но нужен на фронте)
-    material_type: str | None = None
-    specs: str | None = None
-    price_usd: float | None = None
-    price_mxn: float | None = None
-    stock: int
-    photo_url: str | None = None
-    arrival_date: date | None = None
-    issued_date: date | None = None
-    issued_to_hvac: int | None = None
-    qty_issued: int | None = None
-    status: str | None = None
+    brand: Optional[str]
+    model: Optional[str]
+    material_type: Optional[str]
+    specs: Optional[str]
+    price_usd: Optional[float]
+    price_mxn: Optional[float]
+    stock: Optional[int]
+    photo_url: Optional[str]
+    arrival_date: Optional[date]
+    issued_date: Optional[date]
+    issued_to_hvac: Optional[int]
+    qty_issued: Optional[int]
+    status: Optional[str]
 
     class Config:
-        from_attributes = True
+        orm_mode = True

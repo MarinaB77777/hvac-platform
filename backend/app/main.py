@@ -45,6 +45,7 @@ def add_missing_columns():
     with engine.connect() as connection:
         connection.execute(text("""
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS brand TEXT;
+            ALTER TABLE materials ADD COLUMN IF NOT EXISTS model TEXT;
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS material_type TEXT;
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS specs TEXT;
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_usd INTEGER;

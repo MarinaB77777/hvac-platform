@@ -5,7 +5,7 @@ class MaterialSchema(BaseModel):
     id: int
     name: str
     brand: str | None = None
-    model: str | None = None  # 🔧 Рекомендуется добавить (отсутствует в БД, но нужен на фронте)
+    # model: str | None = None  # 🔧 Рекомендуется добавить (отсутствует в БД, но нужен на фронте)
     material_type: str | None = None
     specs: str | None = None
     price_usd: float | None = None

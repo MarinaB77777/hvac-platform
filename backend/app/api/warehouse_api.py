@@ -6,7 +6,7 @@ from typing import List
 
 from app.db import get_db
 from app.models.material import Material
-from app.schemas.material import MaterialSchema
+from app.schemas.material import MaterialOut
 
 router = APIRouter()
 

@@ -1,65 +1,40 @@
 # app/api/warehouse_api.py
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.db import get_db
-from app.models.user import User
 from app.models.material import Material
-from app.services.auth import get_current_user
+from typing import List
+from pydantic import BaseModel
+from datetime import date
 
-router = APIRouter(prefix="/warehouse", tags=["Warehouse"])
-
-# ✅ Просмотр всех материалов на складе (только для warehouse, hvac, manager)
-@router.get("/materials")
-def get_all_materials(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    if current_user.role not in ["warehouse", "hvac", "manager"]:
-        raise HTTPException(status_code=403, detail="Access denied.")
-    return db.query(Material).all()
+router = APIRouter()
 
 
-# ✅ Добавить новый материал (только для warehouse)
-@router.post("/materials")
-def add_material(
-    data: dict,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    if current_user.role != "warehouse":
-        raise HTTPException(status_code=403, detail="Only warehouse staff can add materials.")
+# 🔹 Pydantic-схема для вывода материалов
+class MaterialOut(BaseModel):
+    id: int
+    name: str
+    brand: str | None = None
+    model: str | None = None
+    material_type: str | None = None
+    specs: str | None = None
+    price_usd: float | None = None
+    price_mxn: float | None = None
+    stock: int
+    photo_url: str | None = None
+    arrival_date: date | None = None
+    issued_date: date | None = None
+    issued_to_hvac: int | None = None
+    qty_issued: int | None = None
+    status: str
 
-    material = Material(
-    name=data.get("name"),
-    brand=data.get("brand"),
-    model=data.get("model"),
-    material_type=data.get("material_type"),
-    specs=data.get("specs"),
-    price_usd=data.get("price_usd"),
-    price_mxn=data.get("price_mxn"),
-    stock=data.get("stock"),
-    photo_url=data.get("photo_url"),
-    arrival_date=data.get("arrival_date"),
-    status=data.get("status"),
-    )
-    db.add(material)
-    db.commit()
-    db.refresh(material)
-    return material
+    class Config:
+        orm_mode = True
 
 
-# ✅ Получить материал по ID
-@router.get("/materials/{material_id}")
-def get_material_by_id(
-    material_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    if current_user.role not in ["warehouse", "hvac", "manager"]:
-        raise HTTPException(status_code=403, detail="Access denied.")
-
-    material = db.query(Material).filter(Material.id == material_id).first()
-    if not material:
-        raise HTTPException(status_code=404, detail="Material not found.")
-    return material
+# 🔹 Получить все материалы со склада
+@router.get("/materials", response_model=List[MaterialOut])
+def get_all_materials(db: Session = Depends(get_db)):
+    materials = db.query(Material).all()
+    return materials

@@ -11,7 +11,7 @@ class Material(Base):
     # Основные поля
     name = Column(String, nullable=False)                  # Название расходника: "Компрессор", "Фреон", "Трансформатор"
     brand = Column(String, nullable=True)                  # Бренд (например, Embraco), может быть пустым
-    # model = Column(String, nullable=True)                  # Модель или марка (например, R404a, NJ9238GK)
+    model = Column(String, nullable=True)                  # Модель или марка (например, R404a, NJ9238GK)
     material_type = Column(String, nullable=True)          # Тип: "компрессор", "фреон", и т.д.
     specs = Column(String, nullable=True, comment="Описание: напряжение, температурный режим, применение и др.")
 

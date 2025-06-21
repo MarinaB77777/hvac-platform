@@ -11,6 +11,6 @@ from app.schemas.material import MaterialOut
 router = APIRouter()
 
 # 🔹 Получить все материалы со склада
-@router.get("/materials", response_model=List[MaterialSchema])
+@router.get("/materials", response_model=List[MaterialOut])
 def get_all_materials(db: Session = Depends(get_db)):
     return db.query(Material).all()

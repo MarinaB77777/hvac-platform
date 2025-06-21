@@ -1,20 +1,13 @@
-# app/api/materials.py
-
-from fastapi import APIRouter, Depends, HTTPException
+# backend/app/api/materials.py
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from typing import List
 from app.db import get_db
 from app.models.material import Material
-from app.services.auth import get_current_user
-from app.models.user import User
+from app.schemas.material import MaterialOut
 
-router = APIRouter()
+router = APIRouter(prefix="/materials", tags=["materials"])
 
-@router.get("/materials")
-def get_materials(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    if current_user.role not in ["warehouse", "hvac", "manager"]:
-        raise HTTPException(status_code=403, detail="Access denied")
-
+@router.get("/", response_model=List[MaterialOut])
+def get_all_materials(db: Session = Depends(get_db)):
     return db.query(Material).all()

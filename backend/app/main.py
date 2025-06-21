@@ -84,3 +84,27 @@ def add_debug_material():
     db.commit()
     db.refresh(material)
     return {"message": "Добавлен тестовый материал", "material_id": material.id}
+
+# ✅ Вынесенный отдельно
+@app.post("/debug/create-materials-table")
+def create_materials_table():
+    with engine.connect() as conn:
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS materials (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                brand TEXT,
+                material_type TEXT,
+                specs TEXT,
+                price_usd FLOAT,
+                price_mxn FLOAT,
+                stock INTEGER DEFAULT 0 NOT NULL,
+                photo_url TEXT,
+                arrival_date DATE,
+                issued_date DATE,
+                issued_to_hvac INTEGER,
+                qty_issued INTEGER,
+                status TEXT DEFAULT 'available'
+            );
+        """))
+    return {"status": "created"}

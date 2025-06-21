@@ -1,32 +1,26 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
-from app.db import Base
-from app.services.auth import get_current_user # ✅ исправлено
+from sqlalchemy import text
+from app.db import Base, engine, get_db
+from app.services.auth import get_current_user
 from app.api import (
     login,
     user_api,
-    material_requests,
-    warehouse_api,
-    orders,
-    manager_api,
     client_api,
+    manager_api,
+    warehouse_api,
     hvac_api,
-    materials, 
+    material_requests,
+    materials,
 )
-
-from app.db import engine, get_db
 from app.models.material import Material
-from app.models.material_request import MaterialRequest
 
 app = FastAPI()
 
-origins = ["*"]
-
+# 🔓 CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -41,12 +35,10 @@ app.include_router(warehouse_api.router)
 app.include_router(hvac_api.router)
 app.include_router(material_requests.router)
 
-# 📦 Создание таблиц
-with engine.connect() as conn:
-    conn.execute(text("DROP TABLE IF EXISTS materials"))
+# 📦 Создание таблиц, если не существуют
 Base.metadata.create_all(bind=engine)
 
-# 🧪 Debug endpoint — вручную создать материал
+# 🧪 Debug endpoint — вручную создать тестовый материал
 @app.post("/debug/add-material")
 def debug_add_material(db=next(get_db())):
     material = Material(

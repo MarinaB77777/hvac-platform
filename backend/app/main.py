@@ -12,12 +12,11 @@ from app.api import (
     material_requests,
     materials,
 )
-
 from app.models.material import Material
 
 app = FastAPI()
 
-# CORS настройки (открыт для всех источников)
+# CORS настройки
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -36,30 +35,66 @@ app.include_router(hvac_api.router)
 app.include_router(material_requests.router)
 app.include_router(materials.router)
 
-# Создание таблиц при первом запуске
+# Основная попытка создания таблиц (если модели описаны корректно)
 Base.metadata.create_all(bind=engine)
 
-# Ручное добавление колонок в таблицу materials (если не было Alembic)
-@app.on_event("startup")
-def add_missing_columns():
-    with engine.connect() as connection:
-        connection.execute(text("""
+# ⬇️ Ручное создание таблицы materials (если совсем нет)
+@app.post("/debug/create-materials-table")
+def create_materials_table():
+    with engine.connect() as conn:
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS materials (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                brand TEXT,
+                material_type TEXT,
+                specs TEXT,
+                price_usd FLOAT,
+                price_mxn FLOAT,
+                stock INTEGER DEFAULT 0 NOT NULL,
+                photo_url TEXT,
+                arrival_date DATE,
+                issued_date DATE,
+                issued_to_hvac INTEGER,
+                qty_issued INTEGER,
+                status TEXT DEFAULT 'available'
+            );
+        """))
+    return {"status": "created"}
+
+# ⬇️ Добавление недостающих колонок вручную (если таблица есть, но неполная)
+@app.post("/debug/fix-materials-columns")
+def fix_materials_columns():
+    with engine.connect() as conn:
+        conn.execute(text("""
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS brand TEXT;
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS model TEXT;
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS material_type TEXT;
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS specs TEXT;
-            ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_usd INTEGER;
-            ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_mxn INTEGER;
-            ALTER TABLE materials ADD COLUMN IF NOT EXISTS stock INTEGER;
+            ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_usd FLOAT;
+            ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_mxn FLOAT;
+            ALTER TABLE materials ADD COLUMN IF NOT EXISTS stock INTEGER DEFAULT 0;
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS photo_url TEXT;
-            ALTER TABLE materials ADD COLUMN IF NOT EXISTS arrival_date TEXT;
-            ALTER TABLE materials ADD COLUMN IF NOT EXISTS issued_date TEXT;
-            ALTER TABLE materials ADD COLUMN IF NOT EXISTS issued_to_hvac TEXT;
+            ALTER TABLE materials ADD COLUMN IF NOT EXISTS arrival_date DATE;
+            ALTER TABLE materials ADD COLUMN IF NOT EXISTS issued_date DATE;
+            ALTER TABLE materials ADD COLUMN IF NOT EXISTS issued_to_hvac INTEGER;
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS qty_issued INTEGER;
-            ALTER TABLE materials ADD COLUMN IF NOT EXISTS status TEXT;
+            ALTER TABLE materials ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'available';
         """))
+    return {"status": "columns ensured"}
 
-# Debug endpoint для добавления тестового материала
+# ⬇️ Debug: список колонок таблицы materials
+@app.get("/debug/columns/materials")
+def get_material_columns():
+    with engine.connect() as conn:
+        result = conn.execute(text("""
+            SELECT column_name, data_type
+            FROM information_schema.columns
+            WHERE table_name = 'materials'
+        """))
+        return [{"column": row[0], "type": row[1]} for row in result]
+
+# ⬇️ Debug: добавление тестового материала
 @app.post("/debug/add-material")
 def add_debug_material():
     from app.db import get_db
@@ -84,27 +119,3 @@ def add_debug_material():
     db.commit()
     db.refresh(material)
     return {"message": "Добавлен тестовый материал", "material_id": material.id}
-
-# ✅ Вынесенный отдельно
-@app.post("/debug/create-materials-table")
-def create_materials_table():
-    with engine.connect() as conn:
-        conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS materials (
-                id SERIAL PRIMARY KEY,
-                name TEXT NOT NULL,
-                brand TEXT,
-                material_type TEXT,
-                specs TEXT,
-                price_usd FLOAT,
-                price_mxn FLOAT,
-                stock INTEGER DEFAULT 0 NOT NULL,
-                photo_url TEXT,
-                arrival_date DATE,
-                issued_date DATE,
-                issued_to_hvac INTEGER,
-                qty_issued INTEGER,
-                status TEXT DEFAULT 'available'
-            );
-        """))
-    return {"status": "created"}

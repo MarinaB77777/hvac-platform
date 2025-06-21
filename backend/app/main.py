@@ -42,22 +42,9 @@ app.include_router(hvac_api.router)
 app.include_router(material_requests.router)
 
 # 📦 Создание таблиц
-Base.metadata.create_all(bind=engine)
-
-# 🛠️ Миграции (добавление недостающих столбцов)
 with engine.connect() as conn:
-    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS model TEXT"))
-    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS material_type TEXT"))
-    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS specs TEXT"))
-    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_usd INTEGER"))
-    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_mxn INTEGER"))
-    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS stock INTEGER"))
-    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS photo_url TEXT"))
-    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS arrival_date TEXT"))
-    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS issued_date TEXT"))
-    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS issued_to_hvac INTEGER"))
-    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS qty_issued INTEGER"))
-    conn.execute(text("ALTER TABLE materials ADD COLUMN IF NOT EXISTS status TEXT"))
+    conn.execute(text("DROP TABLE IF EXISTS materials"))
+Base.metadata.create_all(bind=engine)
 
 # 🧪 Debug endpoint — вручную создать материал
 @app.post("/debug/add-material")

@@ -1,22 +1,22 @@
 from pydantic import BaseModel
-from typing import Optional
+from datetime import date
 
 class MaterialSchema(BaseModel):
     id: int
     name: str
-    brand: Optional[str]
-    model: Optional[str]
-    material_type: Optional[str]
-    specs: Optional[str]
-    price_usd: Optional[float]
-    price_mxn: Optional[float]
+    brand: str | None = None
+    model: str | None = None
+    material_type: str | None = None
+    specs: str | None = None
+    price_usd: float | None = None
+    price_mxn: float | None = None
     stock: int
-    photo_url: Optional[str]
-    arrival_date: Optional[str]
-    issued_date: Optional[str]
-    issued_to_hvac: Optional[int]
-    qty_issued: Optional[int]
-    status: Optional[str]
+    photo_url: str | None = None
+    arrival_date: date | None = None
+    issued_date: date | None = None
+    issued_to_hvac: int | None = None
+    qty_issued: int | None = None
+    status: str | None = None
 
     class Config:
-    from_attributes = True
+        from_attributes = True

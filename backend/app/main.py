@@ -102,21 +102,21 @@ from sqlalchemy import text
 def insert_initial_material():
     with engine.connect() as conn:
         result = conn.execute(text("SELECT COUNT(*) FROM materials"))
-        count = result.scalar()
+        count = result.scalar()  # ← 🛠 ВЕРНУТЬ ЭТУ СТРОКУ
 
-if count == 0:
-        conn.execute(text("""
-            INSERT INTO materials (
-                name, material_type, brand, specs,
-                price_usd, price_mxn, stock,
-                photo_url, arrival_date, status
-            ) VALUES (
-                'Деталь тестовая', 'Компрессор', 'LG', 'модель X-200',
-                100.0, 1800.0, 10,
-                'https://example.com/photo.jpg', '2024-06-20', 'available'
-            )
-        """))
-        conn.commit()
+        if count == 0:
+            conn.execute(text("""
+                INSERT INTO materials (
+                    name, material_type, brand, specs,
+                    price_usd, price_mxn, stock,
+                    photo_url, arrival_date, status
+                ) VALUES (
+                    'Деталь тестовая', 'Компрессор', 'LG', 'модель X-200',
+                    100.0, 1800.0, 10,
+                    'https://example.com/photo.jpg', '2024-06-20', 'available'
+                )
+            """))
+            conn.commit()
 
 # ⬇️ Debug: добавление тестового материала
 @app.post("/debug/add-material")

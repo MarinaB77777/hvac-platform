@@ -6,7 +6,7 @@ from app.models.material import Material
 router = APIRouter()
 
 # 📦 Получить материалы со склада с фильтрацией
-@router.get("/warehouse/materials")
+@router.get("/materials")
 def get_all_materials(db: Session = Depends(get_db)):
     materials = db.query(Material).all()
     return [

@@ -46,6 +46,7 @@ def create_materials_table():
             CREATE TABLE IF NOT EXISTS materials (
                 id SERIAL PRIMARY KEY,
                 name TEXT NOT NULL,
+                model TEXT,
                 brand TEXT,
                 material_type TEXT,
                 specs TEXT,
@@ -67,8 +68,9 @@ def create_materials_table():
 def fix_materials_columns():
     with engine.connect() as conn:
         conn.execute(text("""
-            ALTER TABLE materials ADD COLUMN IF NOT EXISTS brand TEXT;
+            ALTER TABLE materials ADD COLUMN IF NOT EXISTS name TEXT;
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS model TEXT;
+            ALTER TABLE materials ADD COLUMN IF NOT EXISTS brand TEXT;
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS material_type TEXT;
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS specs TEXT;
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_usd FLOAT;
@@ -101,7 +103,8 @@ def add_debug_material():
     db = next(get_db())
 
     material = Material(
-        name="Компрессор X200",
+        name="Компрессор",
+        model="X200",
         brand="Daikin",
         material_type="compressor",
         specs="220V, 3.5kW",
@@ -113,7 +116,7 @@ def add_debug_material():
         issued_date=None,
         issued_to_hvac=None,
         qty_issued=0,
-        status="на складе"
+    status="на складе"
     )
     db.add(material)
     db.commit()

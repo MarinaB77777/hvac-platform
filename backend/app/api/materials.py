@@ -11,15 +11,12 @@ router = APIRouter(prefix="/materials", tags=["materials"])
 @router.get("/", response_model=List[MaterialOut])
 def get_all_materials(
     db: Session = Depends(get_db),
-    material_type: Optional[str] = Query(None, description="Фильтр по типу материала"),
     brand: Optional[str] = Query(None, description="Фильтр по бренду"),
     name: Optional[str] = Query(None, description="Поиск по названию (включает подстроку)"),
     sort_by: Optional[str] = Query(None, description="Сортировка: 'stock' или 'price'")
 ):
     query = db.query(Material)
 
-    if material_type:
-        query = query.filter(Material.material_type == material_type)
     if brand:
         query = query.filter(Material.brand == brand)
     if name:

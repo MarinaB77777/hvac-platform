@@ -43,7 +43,7 @@ app.include_router(orders.router)
 # 🛠 Подключение к БД
 from app.db import engine
 
-# ✅ Ручная миграция таблицы materials (без material_type)
+# ✅ Полная миграция таблицы materials (все необходимые поля)
 with engine.connect() as conn:
     conn.execute(text("""
         ALTER TABLE materials ADD COLUMN IF NOT EXISTS name VARCHAR;
@@ -67,10 +67,22 @@ with engine.connect() as conn:
         ALTER TABLE materials ADD COLUMN IF NOT EXISTS stock INTEGER;
     """))
     conn.execute(text("""
+        ALTER TABLE materials ADD COLUMN IF NOT EXISTS qty_received INTEGER;
+    """))
+    conn.execute(text("""
+        ALTER TABLE materials ADD COLUMN IF NOT EXISTS qty_issued INTEGER;
+    """))
+    conn.execute(text("""
+        ALTER TABLE materials ADD COLUMN IF NOT EXISTS issued_to_hvac INTEGER;
+    """))
+    conn.execute(text("""
         ALTER TABLE materials ADD COLUMN IF NOT EXISTS photo_url TEXT;
     """))
     conn.execute(text("""
         ALTER TABLE materials ADD COLUMN IF NOT EXISTS arrival_date DATE;
+    """))
+    conn.execute(text("""
+        ALTER TABLE materials ADD COLUMN IF NOT EXISTS issued_date DATE;
     """))
     conn.execute(text("""
         ALTER TABLE materials ADD COLUMN IF NOT EXISTS status VARCHAR;

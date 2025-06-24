@@ -48,7 +48,6 @@ def create_materials_table():
                 name TEXT NOT NULL,
                 model TEXT,
                 brand TEXT,
-                material_type TEXT,
                 specs TEXT,
                 price_usd FLOAT,
                 price_mxn FLOAT,
@@ -71,7 +70,6 @@ def fix_materials_columns():
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS name TEXT;
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS model TEXT;
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS brand TEXT;
-            ALTER TABLE materials ADD COLUMN IF NOT EXISTS material_type TEXT;
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS specs TEXT;
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_usd FLOAT;
             ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_mxn FLOAT;
@@ -107,11 +105,11 @@ def insert_initial_material():
         if count == 0:
             conn.execute(text("""
                 INSERT INTO materials (
-                    name, material_type, brand, specs,
+                    name, model, brand, specs,
                     price_usd, price_mxn, stock,
                     photo_url, arrival_date, status
                 ) VALUES (
-                    'Деталь тестовая', 'Компрессор', 'LG', 'модель X-200',
+                    'Деталь тестовая', 'Компрессор', 'модель X-200', 'LG', 
                     100.0, 1800.0, 10,
                     'https://example.com/photo.jpg', '2024-06-20', 'available'
                 )
@@ -128,7 +126,6 @@ def add_debug_material():
         name="Компрессор",
         model="X200",
         brand="Daikin",
-        material_type="compressor",
         specs="220V, 3.5kW",
         price_usd=120,
         price_mxn=2100,

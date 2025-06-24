@@ -9,7 +9,6 @@ class Material(Base):
     name = Column(String, nullable=False)
     model = Column(String, nullable=True)
     brand = Column(String, nullable=True)
-    material_type = Column(String, nullable=True)
     specs = Column(String, nullable=True)
     price_usd = Column(Float, nullable=True)
     price_mxn = Column(Float, nullable=True)

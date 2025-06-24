@@ -9,7 +9,6 @@ class MaterialOut(BaseModel):
     name: str
     model: Optional[str]
     brand: Optional[str]
-    material_type: Optional[str]
     specs: Optional[str]
     price_usd: Optional[float]
     price_mxn: Optional[float]

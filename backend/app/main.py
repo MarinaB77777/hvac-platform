@@ -11,6 +11,7 @@ from app.api import (
     warehouse_api,
     hvac_api,
     material_requests,
+    materials,
     orders,
 )
 from app.models.material import Material
@@ -36,6 +37,7 @@ app.include_router(manager_api.router)
 app.include_router(warehouse_api.router)
 app.include_router(hvac_api.router)
 app.include_router(material_requests.router)
+app.include_router(materials.router)
 app.include_router(orders.router)
 
 # 🛠 Подключение к БД

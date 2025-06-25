@@ -1,45 +1,36 @@
 # backend/app/api/warehouse_recognition/warehouse_recognition.py
 
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
-import pytesseract
 from PIL import Image
-import io
-import numpy as np
-import cv2
+import pytesseract
+from io import BytesIO
 
 router = APIRouter(
     prefix="/warehouse",
-    tags=["warehouse-ocr"]
+    tags=["warehouse_recognition"]
 )
 
 @router.post("/recognize-image")
-async def recognize_text_from_image(image: UploadFile = File(...)):
+async def recognize_image(image: UploadFile = File(...)):
     try:
-        # Чтение содержимого изображения
         contents = await image.read()
 
-        # Декодирование изображения через OpenCV
-        nparr = np.frombuffer(contents, np.uint8)
-        cv_img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        # Открываем изображение через Pillow
+        image = Image.open(BytesIO(contents))
 
-        if cv_img is None:
-            raise HTTPException(status_code=400, detail="Не удалось декодировать изображение")
+        # Распознаём текст
+        recognized_text = pytesseract.image_to_string(image)
 
-        # Предобработка: серое изображение + бинаризация
-        gray = cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)
-        _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+        # Простой пример разбора результата
+        material_data = {
+            "name": "Неизвестно",
+            "brand": "Неизвестно",
+            "model": "Неизвестно",
+            "specs": recognized_text.strip()
+        }
 
-        # Преобразование обратно в формат PIL
-        img = Image.fromarray(thresh)
-
-        # Распознавание текста через pytesseract
-        text = pytesseract.image_to_string(img)
-
-        if not text.strip():
-            raise HTTPException(status_code=400, detail="Текст не распознан")
-
-        return JSONResponse(status_code=200, content={"text": text.strip()})
+        return JSONResponse(content={"recognized": material_data})
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"OCR ошибка: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Ошибка при распознавании изображения: {str(e)}")

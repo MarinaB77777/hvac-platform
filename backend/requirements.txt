@@ -7,3 +7,5 @@ python-jose
 python-multipart
 passlib[bcrypt]
 bcrypt==3.2.0
+pytesseract
+Pillow

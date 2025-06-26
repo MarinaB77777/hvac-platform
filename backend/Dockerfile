@@ -1,32 +1,28 @@
-# Базовый образ с Python и полноценной системой
-FROM python:3.11-bullseye
+# backend/Dockerfile
 
-# Установка системных библиотек, включая Tesseract
+FROM python:3.11-slim
+
+# Обновление системы и установка зависимостей для easyocr и PIL
 RUN apt-get update && apt-get install -y \
-    tesseract-ocr \
-    libtesseract-dev \
-    libleptonica-dev \
-    poppler-utils \
+    build-essential \
     libglib2.0-0 \
     libsm6 \
-    libxrender1 \
     libxext6 \
+    libxrender-dev \
+    libgl1 \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Установка рабочей директории
 WORKDIR /app
 
-# Копируем зависимости
+# Копирование зависимостей и установка Python-пакетов
 COPY requirements.txt .
+RUN pip install --upgrade pip \
+    && pip install -r requirements.txt
 
-# Устанавливаем Python-библиотеки
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Копируем код проекта
+# Копирование исходного кода
 COPY . .
 
-# Устанавливаем переменную окружения на всякий случай
-ENV TESSERACT_CMD=/usr/bin/tesseract
-
-# Запуск
+# Запуск приложения
 CMD ["python", "start.py"]

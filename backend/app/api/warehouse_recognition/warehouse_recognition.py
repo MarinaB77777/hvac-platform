@@ -9,24 +9,16 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 from app.models.material import Material
 from app.services.auth import get_current_user
-import pytesseract
 from PIL import Image, UnidentifiedImageError
 from io import BytesIO
 import logging
-import shutil
-
-# 🔍 Проверка наличия tesseract
-tesseract_path = shutil.which("tesseract")
-print(f"🔍 Проверка tesseract path: {tesseract_path}")
-
-if not tesseract_path:
-    print("❗️tesseract не найден в PATH, указываем вручную")
-    pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
-else:
-    print(f"✅ tesseract найден: {tesseract_path}")
-    pytesseract.pytesseract.tesseract_cmd = tesseract_path
+import easyocr
 
 router = APIRouter()
+
+# 🔧 Инициализация EasyOCR
+reader = easyocr.Reader(['en'], gpu=False)
+print("✅ EasyOCR инициализирован")
 
 @router.post("/warehouse/recognize-image")
 async def recognize_image(
@@ -45,15 +37,17 @@ async def recognize_image(
         except UnidentifiedImageError:
             raise HTTPException(status_code=400, detail="❌ Неподдерживаемый формат изображения")
 
-        print(f"🔧 Запускаем OCR с командой: {pytesseract.pytesseract.tesseract_cmd}")
-        try:
-            text = pytesseract.image_to_string(pil_image)
-        except Exception as e:
-            print(f"🔥 Ошибка Tesseract: {e}")
-            raise HTTPException(status_code=500, detail="❌ Ошибка при распознавании текста")
+        # Конвертация в numpy массив для EasyOCR
+        import numpy as np
+        np_image = np.array(pil_image)
+
+        print("🔧 Запускаем EasyOCR...")
+        results = reader.readtext(np_image, detail=0)
+        full_text = "\n".join(results)
+        print("📄 Распознанный текст:\n", full_text)
 
         def extract_field(label):
-            for line in text.splitlines():
+            for line in results:
                 if label.lower() in line.lower():
                     return line.split(":")[-1].strip()
             return None

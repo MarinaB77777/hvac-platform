@@ -4,26 +4,25 @@ from fastapi import APIRouter, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
 from PIL import Image, UnidentifiedImageError
 import pytesseract
+import os
 import io
 import re
 import shutil
+from datetime import datetime
 
 router = APIRouter(
     prefix="/warehouse",
     tags=["warehouse_recognition"]
 )
 
-# 🔍 Проверка наличия tesseract
-tesseract_path = shutil.which("tesseract")
-print(f"🔍 Проверка tesseract_path: {tesseract_path}")
+# 🔍 Проверка и установка пути к tesseract
+tesseract_path = shutil.which("tesseract") or os.getenv("TESSERACT_CMD", "/usr/bin/tesseract")
 
-if tesseract_path:
-    pytesseract.pytesseract.tesseract_cmd = tesseract_path
-    print(f"✅ Установлен путь к Tesseract: {tesseract_path}")
-else:
-    manual_path = "/usr/bin/tesseract"
-    pytesseract.pytesseract.tesseract_cmd = manual_path
-    print(f"⚠️ Tesseract не найден автоматически. Пробуем вручную: {manual_path}")
+if not tesseract_path:
+    raise RuntimeError("❌ Tesseract не найден ни в PATH, ни через переменную окружения TESSERACT_CMD")
+
+pytesseract.pytesseract.tesseract_cmd = tesseract_path
+print(f"✅ Используется tesseract: {tesseract_path}")
 
 @router.post("/recognize-image")
 async def recognize_image(image: UploadFile = File(...)):
@@ -31,36 +30,36 @@ async def recognize_image(image: UploadFile = File(...)):
         print(f"📸 Получено изображение: {image.filename}")
         contents = await image.read()
 
-        # 🖼 Преобразование в RGB
+        # 🔍 Пробуем открыть изображение
         try:
             pil_image = Image.open(io.BytesIO(contents)).convert("RGB")
         except UnidentifiedImageError:
             raise HTTPException(status_code=400, detail="❌ Неподдерживаемый формат изображения")
 
-        # 🧠 Распознавание текста
+        # 🧠 Распознаём текст
         try:
             recognized_text = pytesseract.image_to_string(pil_image)
-            print(f"📝 Распознанный текст:\n{recognized_text}")
+            print(f"🧾 Распознанный текст:\n{recognized_text}")
         except Exception as e:
-            print(f"🔥 Ошибка Tesseract: {e}")
+            print(f"🔥 Ошибка Tesseract: {str(e)}")
             raise HTTPException(status_code=500, detail="❌ Ошибка при распознавании текста")
 
-        # 🔍 Извлечение данных
-        model_match = re.search(r'MODEL\s*[:\-]?\s*([A-Z0-9\-]+)', recognized_text, re.IGNORECASE)
-        brand_match = re.search(r'(?i)(electrolux|samsung|lg|bosch|siemens)', recognized_text)
-        pnc_match = re.search(r'PNC\s*[:\-]?\s*([\d\s]+)', recognized_text, re.IGNORECASE)
-        serial_match = re.search(r'SERIAL\s*[:\-]?\s*(\S+)', recognized_text, re.IGNORECASE)
+        # 🔍 Поиск ключевых полей
+        model_match = re.search(r'MODEL\s*[:\-]?\s*([\w\-\/]+)', recognized_text, re.IGNORECASE)
+        pnc_match = re.search(r'PNC\s*[:\-]?\s*([\w\-]+)', recognized_text, re.IGNORECASE)
+        serial_match = re.search(r'SERIAL\s*NO\s*[:\-]?\s*([\w\-]+)', recognized_text, re.IGNORECASE)
 
-        result = {
-            "brand": brand_match.group(1).capitalize() if brand_match else None,
+        data = {
             "model": model_match.group(1) if model_match else None,
-            "pnc": pnc_match.group(1).replace(" ", "") if pnc_match else None,
+            "pnc": pnc_match.group(1) if pnc_match else None,
             "serial": serial_match.group(1) if serial_match else None,
+            "status": "pending",
+            "recognized_at": datetime.utcnow().isoformat()
         }
 
-        print(f"✅ Извлечённые данные: {result}")
-        return JSONResponse(content=result)
+        print(f"📦 Извлечённые данные: {data}")
+        return JSONResponse(content=data)
 
     except Exception as e:
-        print(f"🔥 Общая ошибка при распознавании: {e}")
-        raise HTTPException(status_code=500, detail="❌ Ошибка при распознавании изображения")
+        print(f"🔥 Общая ошибка при распознавании: {str(e)}")
+        raise HTTPException(status_code=500, detail="❌ Ошибка при распознавании текста")

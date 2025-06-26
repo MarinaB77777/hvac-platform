@@ -15,8 +15,6 @@ from io import BytesIO
 import logging
 import shutil
 
-router = APIRouter()
-
 # 🔍 Проверка наличия tesseract
 tesseract_path = shutil.which("tesseract")
 print(f"🔍 Проверка tesseract path: {tesseract_path}")
@@ -27,6 +25,8 @@ if not tesseract_path:
 else:
     print(f"✅ tesseract найден: {tesseract_path}")
     pytesseract.pytesseract.tesseract_cmd = tesseract_path
+
+router = APIRouter()
 
 @router.post("/warehouse/recognize-image")
 async def recognize_image(

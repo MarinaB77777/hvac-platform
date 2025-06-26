@@ -13,6 +13,6 @@ else:
     print(f"✅ Используется tesseract: {tesseract_path}")
     os.environ["TESSERACT_CMD"] = tesseract_path
 
-if name == "__main__":
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     uvicorn.run("app.main:app", host="0.0.0.0", port=port)

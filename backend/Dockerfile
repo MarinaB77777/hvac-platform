@@ -13,20 +13,20 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     && rm -rf /var/lib/apt/lists/*
 
-# Создаем рабочую директорию
+# Установка рабочей директории
 WORKDIR /app
 
 # Копируем зависимости
 COPY requirements.txt .
 
-# Устанавливаем Python-зависимости
+# Устанавливаем Python-библиотеки
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем остальной код
+# Копируем код проекта
 COPY . .
 
-# Указываем путь к tesseract на всякий случай
+# Устанавливаем переменную окружения на всякий случай
 ENV TESSERACT_CMD=/usr/bin/tesseract
 
-# Запуск приложения
+# Запуск
 CMD ["python", "start.py"]

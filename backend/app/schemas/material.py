@@ -20,6 +20,20 @@ class MaterialOut(BaseModel):
     qty_issued: Optional[int]
     status: Optional[str]
 
+class MaterialCreate(BaseModel):
+    name: str
+    model: Optional[str]
+    brand: Optional[str]
+    specs: Optional[str]
+    price_usd: Optional[float]
+    price_mxn: Optional[float]
+    stock: Optional[int]
+    photo_url: Optional[str]
+    arrival_date: Optional[date]
+    qty_issued: Optional[int] = 0
+    status: Optional[str] = "pending"
+
+    
     model_config = {
         "from_attributes": True
     }

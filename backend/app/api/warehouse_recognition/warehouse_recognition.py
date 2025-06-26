@@ -1,65 +1,81 @@
-# backend/app/api/warehouse_recognition/warehouse_recognition.py
+# backend/app/api/warehouse_recognition.py
 
-from fastapi import APIRouter, File, UploadFile, HTTPException
-from fastapi.responses import JSONResponse
-from PIL import Image, UnidentifiedImageError
-import pytesseract
 import os
-import io
-import re
-import shutil
+import uuid
 from datetime import datetime
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
+from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session
+from app.db import get_db
+from app.models.material import Material
+from app.services.auth import get_current_user
+import pytesseract
+from PIL import Image
+from io import BytesIO
+import logging
 
-router = APIRouter(
-    prefix="/warehouse",
-    tags=["warehouse_recognition"]
-)
+router = APIRouter()
 
-# 🔍 Проверка и установка пути к tesseract
-tesseract_path = shutil.which("tesseract") or os.getenv("TESSERACT_CMD", "/usr/bin/tesseract")
+# Установка пути к Tesseract (для Render или других окружений)
+pytesseract.pytesseract.tesseract_cmd = os.getenv("TESSERACT_CMD", "/usr/bin/tesseract")
+print(f"✅ Используется tesseract: {pytesseract.pytesseract.tesseract_cmd}")
 
-if not tesseract_path:
-    raise RuntimeError("❌ Tesseract не найден ни в PATH, ни через переменную окружения TESSERACT_CMD")
-
-pytesseract.pytesseract.tesseract_cmd = tesseract_path
-print(f"✅ Используется tesseract: {tesseract_path}")
-
-@router.post("/recognize-image")
-async def recognize_image(image: UploadFile = File(...)):
+@router.post("/warehouse/recognize-image")
+async def recognize_image(
+    image: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: dict = Depends(get_current_user),
+):
     try:
-        print(f"📸 Получено изображение: {image.filename}")
+        # Проверка файла
+        filename = image.filename
         contents = await image.read()
+        print(f"📸 Получено изображение: {filename}")
 
-        # 🔍 Пробуем открыть изображение
-        try:
-            pil_image = Image.open(io.BytesIO(contents)).convert("RGB")
-        except UnidentifiedImageError:
-            raise HTTPException(status_code=400, detail="❌ Неподдерживаемый формат изображения")
+        # Преобразуем в RGB и читаем
+        pil_image = Image.open(BytesIO(contents)).convert("RGB")
 
-        # 🧠 Распознаём текст
+        # Распознавание
         try:
-            recognized_text = pytesseract.image_to_string(pil_image)
-            print(f"🧾 Распознанный текст:\n{recognized_text}")
+            text = pytesseract.image_to_string(pil_image)
         except Exception as e:
-            print(f"🔥 Ошибка Tesseract: {str(e)}")
+            print(f"🔥 Ошибка Tesseract: {e}")
             raise HTTPException(status_code=500, detail="❌ Ошибка при распознавании текста")
 
-        # 🔍 Поиск ключевых полей
-        model_match = re.search(r'MODEL\s*[:\-]?\s*([\w\-\/]+)', recognized_text, re.IGNORECASE)
-        pnc_match = re.search(r'PNC\s*[:\-]?\s*([\w\-]+)', recognized_text, re.IGNORECASE)
-        serial_match = re.search(r'SERIAL\s*NO\s*[:\-]?\s*([\w\-]+)', recognized_text, re.IGNORECASE)
+        # Фильтрация
+        def extract_field(label):
+            for line in text.splitlines():
+                if label.lower() in line.lower():
+                    return line.split(":")[-1].strip()
+            return None
 
-        data = {
-            "model": model_match.group(1) if model_match else None,
-            "pnc": pnc_match.group(1) if pnc_match else None,
-            "serial": serial_match.group(1) if serial_match else None,
+        model = extract_field("model")
+        brand = extract_field("brand")
+        pnc = extract_field("pnc")
+        serial = extract_field("serial")
+
+        if not any([model, brand, pnc, serial]):
+            print("⚠️ Ни одно из нужных полей не найдено.")
+            raise HTTPException(status_code=422, detail="Не удалось найти нужные поля")
+
+        # Формирование объекта
+        material = {
+            "name": "Распознанный материал",
+            "model": model,
+            "brand": brand,
+            "specs": f"PNC: {pnc}, SN: {serial}",
+            "price_usd": None,
+            "price_mxn": None,
+            "arrival_date": datetime.utcnow().date().isoformat(),
+            "stock": None,
+            "qty_issued": 0,
             "status": "pending",
-            "recognized_at": datetime.utcnow().isoformat()
+            "photo_url": f"/media/{filename}",  # путь в зависимости от хранилища
         }
 
-        print(f"📦 Извлечённые данные: {data}")
-        return JSONResponse(content=data)
+        print("✅ Распознанные данные:", material)
+        return JSONResponse(content=material)
 
     except Exception as e:
-        print(f"🔥 Общая ошибка при распознавании: {str(e)}")
+        print(f"🔥 Общая ошибка при распознавании: {e}")
         raise HTTPException(status_code=500, detail="❌ Ошибка при распознавании текста")

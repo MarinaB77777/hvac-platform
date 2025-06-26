@@ -10,3 +10,5 @@ bcrypt==3.2.0
 pytesseract
 Pillow
 numpy
+easyocr
+torch

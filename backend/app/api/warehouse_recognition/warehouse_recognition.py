@@ -1,46 +1,49 @@
-# backend/app/api/warehouse_recognition/warehouse_recognition.py
-
 from fastapi import APIRouter, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
 from PIL import Image, UnidentifiedImageError
 import pytesseract
-from io import BytesIO
+import io
 import re
+import logging
 
 router = APIRouter(
     prefix="/warehouse",
     tags=["warehouse_recognition"]
 )
 
+logger = logging.getLogger("uvicorn.error")
+
 @router.post("/recognize-image")
 async def recognize_image(image: UploadFile = File(...)):
     try:
         contents = await image.read()
+        logger.info(f"📸 Получено изображение: {image.filename}")
 
-        # 🖼 Открываем изображение
         try:
-            pil_image = Image.open(BytesIO(contents)).convert("RGB")
+            pil_image = Image.open(io.BytesIO(contents)).convert("RGB")
         except UnidentifiedImageError:
+            logger.error("❌ Неподдерживаемый формат изображения")
             raise HTTPException(status_code=400, detail="Неподдерживаемый формат изображения")
 
-        # 🔠 Распознаём текст
+        # Распознавание текста
         recognized_text = pytesseract.image_to_string(pil_image)
+        logger.info(f"📄 Распознанный текст:\n{recognized_text}")
 
-        # 🔍 Пытаемся найти ключевые поля
-        model_match = re.search(r'MODEL[:\s]*([A-Z0-9\-]+)', recognized_text, re.IGNORECASE)
-        pnc_match = re.search(r'PNC[:\s]*([\d\s]+)', recognized_text, re.IGNORECASE)
-        serial_match = re.search(r'SERIAL\s*NO\.?[:\s]*([\d\s]+)', recognized_text, re.IGNORECASE)
-        brand_match = re.search(r'Electrolux|Samsung|LG|Bosch|Whirlpool', recognized_text, re.IGNORECASE)
+        # Поиск ключевых данных
+        model_match = re.search(r'MODEL\s*[:\-]?\s*([A-Z0-9\-]+)', recognized_text, re.IGNORECASE)
+        pnc_match = re.search(r'PNC\s*[:\-]?\s*([\d\s]+)', recognized_text, re.IGNORECASE)
+        serial_match = re.search(r'SERIAL\s*NO\.?\s*[:\-]?\s*([0-9]+)', recognized_text, re.IGNORECASE)
 
-        material_data = {
-            "brand": brand_match.group(0).strip() if brand_match else "Неизвестно",
-            "model": model_match.group(1).strip() if model_match else "Неизвестно",
-            "pnc": pnc_match.group(1).strip().replace(" ", "") if pnc_match else "Неизвестно",
-            "serial_number": serial_match.group(1).strip().replace(" ", "") if serial_match else "Неизвестно",
-            "raw_text": recognized_text
+        result = {
+            "model": model_match.group(1) if model_match else None,
+            "pnc": pnc_match.group(1).strip() if pnc_match else None,
+            "serial": serial_match.group(1) if serial_match else None,
+            "recognized_text": recognized_text,
         }
 
-        return JSONResponse(content={"status": "ok", "data": material_data})
+        logger.info(f"✅ Извлечённые данные: {result}")
+        return result
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка при обработке изображения: {str(e)}")
+        logger.error(f"🔥 Ошибка при распознавании: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка распознавания")

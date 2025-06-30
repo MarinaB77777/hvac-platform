@@ -4,12 +4,11 @@ from passlib.hash import bcrypt
 
 from app.db import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserUpdate, UserOut
+from app.schemas.user import UserCreate
 from app.services.auth import get_current_user
 
 router = APIRouter()
 
-# 🔐 Регистрация
 @router.post("/register")
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.phone == user_data.phone).first()
@@ -39,27 +38,51 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
 
     return {"message": "Пользователь успешно зарегистрирован", "id": new_user.id}
 
+@router.get("/users/me")
+def get_me(current_user: User = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "phone": current_user.phone,
+        "role": current_user.role,
+        "location": current_user.location,
+        "qualification": current_user.qualification,
+        "rate": current_user.rate,
+        "status": current_user.status,
+    }
 
-# 🔍 Получение текущего пользователя
-@router.get("/me", response_model=UserOut)
-def get_current_user_data(user: User = Depends(get_current_user)):
-    return UserOut.from_orm(user)  # ✅
-
-
-# ✏️ Обновление данных текущего пользователя
 @router.patch("/users/me")
-def update_me(update_data: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    update_fields = update_data.dict(exclude_unset=True)
+def update_me(
+    rate: Optional[int] = None,
+    status: Optional[str] = None,
+    location: Optional[str] = None,
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # HVAC может менять только свободен / не доступен вручную
+    allowed_statuses = ["свободен", "не доступен"]
+    if status and status not in allowed_statuses:
+        raise HTTPException(status_code=400, detail="Нельзя вручную установить этот статус")
 
-    for field, value in update_fields.items():
-        setattr(current_user, field, value)
+    if rate is not None:
+        current_user.rate = rate
+    if status:
+        current_user.status = status
+    if location:
+        current_user.location = location
+    if latitude is not None:
+        current_user.latitude = latitude
+    if longitude is not None:
+        current_user.longitude = longitude
 
     try:
         db.commit()
         db.refresh(current_user)
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Ошибка обновления данных: {str(e)}")
+        raise HTTPException(status_code=500, detail="Ошибка при обновлении профиля")
 
     return {
         "id": current_user.id,
@@ -73,3 +96,17 @@ def update_me(update_data: UserUpdate, db: Session = Depends(get_db), current_us
         "rate": current_user.rate,
         "status": current_user.status,
     }
+
+@router.post("/users/change-password")
+def change_password(
+    old_password: str,
+    new_password: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if not bcrypt.verify(old_password, current_user.hashed_password):
+        raise HTTPException(status_code=403, detail="Старый пароль неверен")
+
+    current_user.hashed_password = bcrypt.hash(new_password)
+    db.commit()
+    return {"message": "Пароль успешно изменён"}

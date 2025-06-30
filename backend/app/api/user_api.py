@@ -41,9 +41,9 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
 
 
 # 🔍 Получение текущего пользователя
-@router.get("/users/me", response_model=UserOut)
-def get_me(current_user: User = Depends(get_current_user)):
-    return current_user
+@router.get("/me", response_model=UserOut)
+def get_current_user_data(user: User = Depends(get_current_user)):
+    return UserOut.from_orm(user)  # ✅
 
 
 # ✏️ Обновление данных текущего пользователя

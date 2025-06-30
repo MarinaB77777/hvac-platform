@@ -17,7 +17,7 @@ class UserUpdate(BaseModel):
     password: Optional[str] = None
     qualification: Optional[str] = None
     rate: Optional[int] = None
-    status: Optional[str] = "active"
+    status: Optional[str] = None
     location: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None

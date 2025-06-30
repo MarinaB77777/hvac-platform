@@ -4,22 +4,20 @@ from passlib.hash import bcrypt
 
 from app.db import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate
+from app.schemas.user import UserCreate, UserUpdate
 from app.services.auth import get_current_user
 
 router = APIRouter()
 
+# 🔐 Регистрация
 @router.post("/register")
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
-    # 🔍 Проверка — есть ли уже пользователь с таким телефоном
     existing_user = db.query(User).filter(User.phone == user_data.phone).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Пользователь уже существует")
 
-    # 🔐 Хешируем пароль
     hashed_password = bcrypt.hash(user_data.password)
 
-    # ✅ Создаём нового пользователя
     new_user = User(
         name=user_data.name,
         phone=user_data.phone,
@@ -40,7 +38,9 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Ошибка при сохранении пользователя: {str(e)}")
 
     return {"message": "Пользователь успешно зарегистрирован", "id": new_user.id}
-# 🔍 Получение текущего пользователя (для /users/me)
+
+
+# 🔍 Получение текущего пользователя
 @router.get("/users/me")
 def get_me(current_user: User = Depends(get_current_user)):
     return {
@@ -49,6 +49,37 @@ def get_me(current_user: User = Depends(get_current_user)):
         "phone": current_user.phone,
         "role": current_user.role,
         "location": current_user.location,
+        "latitude": current_user.latitude,
+        "longitude": current_user.longitude,
+        "qualification": current_user.qualification,
+        "rate": current_user.rate,
+        "status": current_user.status,
+    }
+
+
+# ✏️ Обновление данных текущего пользователя
+@router.patch("/users/me")
+def update_me(update_data: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    update_fields = update_data.dict(exclude_unset=True)
+
+    for field, value in update_fields.items():
+        setattr(current_user, field, value)
+
+    try:
+        db.commit()
+        db.refresh(current_user)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Ошибка обновления данных: {str(e)}")
+
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "phone": current_user.phone,
+        "role": current_user.role,
+        "location": current_user.location,
+        "latitude": current_user.latitude,
+        "longitude": current_user.longitude,
         "qualification": current_user.qualification,
         "rate": current_user.rate,
         "status": current_user.status,

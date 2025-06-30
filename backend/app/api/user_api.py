@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
+from typing import Optional  # ✅ вот это добавь
 
 from app.db import get_db
 from app.models.user import User

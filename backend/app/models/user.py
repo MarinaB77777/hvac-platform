@@ -16,6 +16,13 @@ class User(Base):
     phone = Column(String, unique=True, index=True, nullable=False)  # логин
     hashed_password = Column(String, nullable=False)              # хэш пароля
     role = Column(SQLEnum(UserRole), nullable=False)              # тип пользователя
+
+class UserStatus(str, Enum):
+    available = "свободен"
+    working = "заказ выполняется"
+    diagnosed = "диагностика завершена"
+    accepted = "заказ принят"
+    unavailable = "не доступен"
     
     # Новые поля
     location = Column(String, nullable=True)                      # местоположение

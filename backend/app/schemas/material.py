@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import date
 
+
 class MaterialOut(BaseModel):
     id: int
     name: str
@@ -20,6 +21,11 @@ class MaterialOut(BaseModel):
     qty_issued: Optional[int]
     status: Optional[str]
 
+    model_config = {
+        "from_attributes": True
+    }
+
+
 class MaterialCreate(BaseModel):
     name: str
     model: Optional[str]
@@ -32,8 +38,3 @@ class MaterialCreate(BaseModel):
     arrival_date: Optional[date]
     qty_issued: Optional[int] = 0
     status: Optional[str] = "pending"
-
-    
-    model_config = {
-        "from_attributes": True
-    }

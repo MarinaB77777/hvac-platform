@@ -22,7 +22,20 @@ class UserUpdate(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
 
+class UserOut(BaseModel):
+    id: int
+    name: str
+    phone: str
+    role: str
+    location: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    qualification: Optional[str] = None
+    rate: Optional[int] = None
+    status: Optional[str] = None
 
+    class Config:
+        orm_mode = True
 
 
 

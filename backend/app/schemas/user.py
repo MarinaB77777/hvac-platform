@@ -34,8 +34,9 @@ class UserOut(BaseModel):
     rate: Optional[int] = None
     status: Optional[str] = None
 
-    class Config:
-        orm_mode = True
+ model_config = {
+        "from_attributes": True
+    }
 
 
 

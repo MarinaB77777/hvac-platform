@@ -19,6 +19,8 @@ class User(Base):
     
     # Новые поля
     location = Column(String, nullable=True)                      # местоположение
+    latitude = Column(String, nullable=True)                      # широта
+    longitude = Column(String, nullable=True)                     # долгота
     qualification = Column(String, nullable=True)                 # квалификация (HVAC)
     rate = Column(Integer, nullable=True)                         # тариф или ставка
     status = Column(String, nullable=True)                        # активен / заблокирован / уволен и т.п.

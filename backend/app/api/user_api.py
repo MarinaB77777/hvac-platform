@@ -48,8 +48,6 @@ def get_me(current_user: User = Depends(get_current_user)):
         "name": current_user.name,
         "phone": current_user.phone,
         "role": current_user.role,
-        "location": current_user.location,
-        "latitude": current_user.latitude,
         "longitude": current_user.longitude,
         "qualification": current_user.qualification,
         "rate": current_user.rate,

@@ -4,7 +4,7 @@ from passlib.hash import bcrypt
 
 from app.db import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserUpdate
+from app.schemas.user import UserCreate, UserUpdate, UserOut
 from app.services.auth import get_current_user
 
 router = APIRouter()
@@ -41,18 +41,9 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
 
 
 # 🔍 Получение текущего пользователя
-@router.get("/users/me")
+@router.get("/users/me", response_model=UserOut)
 def get_me(current_user: User = Depends(get_current_user)):
-    return {
-        "id": current_user.id,
-        "name": current_user.name,
-        "phone": current_user.phone,
-        "role": current_user.role,
-        "longitude": current_user.longitude,
-        "qualification": current_user.qualification,
-        "rate": current_user.rate,
-        "status": current_user.status,
-    }
+    return current_user
 
 
 # ✏️ Обновление данных текущего пользователя

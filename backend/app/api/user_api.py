@@ -62,8 +62,8 @@ def update_me(
     current_user: User = Depends(get_current_user)
 ):
     # 🔄 Координаты → сохраняем в location как строку "lat,lon"
-    if user_update.latitude is not None and user_update.longitude is not None:
-        current_user.location = f"{user_update.latitude},{user_update.longitude}"
+    if user_update.location is not None:
+    current_user.location = user_update.location
 
     # 🔄 Имя
     if user_update.name is not None:

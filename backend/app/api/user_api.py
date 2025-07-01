@@ -53,6 +53,7 @@ def get_me(current_user: User = Depends(get_current_user)):
         "qualification": current_user.qualification,
         "rate": current_user.rate,
         "status": current_user.status,
+        "address": current_user.address
     }
 @router.patch("/users/me")
 def update_me(

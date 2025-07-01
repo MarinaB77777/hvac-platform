@@ -45,6 +45,15 @@ app.include_router(warehouse_recognition.router)
 # 🛠 Подключение к БД
 from app.db import engine
 
+# ✅ Создание всех таблиц, включая users
+Base.metadata.create_all(bind=engine)
+
+with engine.connect() as conn:
+    conn.execute(text("""
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS address VARCHAR;
+    """))
+    conn.commit()
+
 # ✅ Полная миграция таблицы materials (все необходимые поля)
 with engine.connect() as conn:
     conn.execute(text("""

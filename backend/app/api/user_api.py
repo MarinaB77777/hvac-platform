@@ -1,10 +1,11 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
+ 
 
 from app.db import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserUpdate
+from app.schemas.user import UserCreate, UserUpdate, ChangePasswordRequest
 from app.services.auth import get_current_user
 
 router = APIRouter()
@@ -82,3 +83,18 @@ def update_me(
         "location": current_user.location,
         "address": current_user.address
     }
+@router.post("/users/change-password")
+def change_password(
+    data: ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if not bcrypt.verify(data.old_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Неверный текущий пароль")
+
+    current_user.hashed_password = bcrypt.hash(data.new_password)
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+
+    return {"message": "Пароль успешно обновлён"}

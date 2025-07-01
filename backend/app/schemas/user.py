@@ -18,8 +18,6 @@ class UserUpdate(BaseModel):
     qualification: Optional[str] = None
     rate: Optional[int] = None
     location: Optional[str] = None
-    latitude: Optional[float]
-    longitude: Optional[float]
     status: Optional[str]
     address: Optional[str]
     

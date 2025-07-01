@@ -25,3 +25,7 @@ class UserUpdate(BaseModel):
     longitude: Optional[float]
     status: Optional[str]
     address: Optional[str]
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str

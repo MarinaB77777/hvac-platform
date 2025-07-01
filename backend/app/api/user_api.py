@@ -4,7 +4,7 @@ from passlib.hash import bcrypt
 
 from app.db import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate
+from app.schemas.user import UserCreate, UserUpdate
 from app.services.auth import get_current_user
 
 router = APIRouter()
@@ -52,4 +52,33 @@ def get_me(current_user: User = Depends(get_current_user)):
         "qualification": current_user.qualification,
         "rate": current_user.rate,
         "status": current_user.status,
+    }
+@router.patch("/users/me")
+def update_me(
+    user_update: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # 🔄 Обновим координаты, если переданы
+    if user_update.latitude is not None and user_update.longitude is not None:
+        current_user.location = [user_update.latitude, user_update.longitude]
+
+    # 🔄 Статус
+    if user_update.status is not None:
+        current_user.status = user_update.status
+
+    # 🔄 Адрес (если передаётся отдельно)
+    if user_update.address is not None:
+        current_user.address = user_update.address
+
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+
+    return {
+        "message": "Профиль обновлён",
+        "id": current_user.id,
+        "status": current_user.status,
+        "location": current_user.location,
+        "address": current_user.address
     }

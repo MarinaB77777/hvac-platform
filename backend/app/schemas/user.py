@@ -19,3 +19,9 @@ class UserUpdate(BaseModel):
     rate: Optional[int] = None
     status: Optional[str] = "active"
     location: Optional[str] = None
+
+class UserUpdate(BaseModel):
+    latitude: Optional[float]
+    longitude: Optional[float]
+    status: Optional[str]
+    address: Optional[str]

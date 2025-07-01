@@ -89,17 +89,7 @@ with engine.connect() as conn:
     conn.execute(text("""
         ALTER TABLE materials ADD COLUMN IF NOT EXISTS status VARCHAR;
     """))
-    conn.commit()
-    conn.execute(text("""
-        ALTER TABLE users ADD COLUMN IF NOT EXISTS latitude VARCHAR;
-    """))
-    conn.execute(text("""
-        ALTER TABLE users ADD COLUMN IF NOT EXISTS longitude VARCHAR;
-    """))
-    conn.commit()
-    conn.execute(text("""
-        ALTER TABLE users ADD COLUMN IF NOT EXISTS address VARCHAR;
-    """))
+  
 
 # ✅ Вставка тестового материала (без material_type)
 with engine.connect() as conn:

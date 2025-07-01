@@ -63,7 +63,7 @@ def update_me(
 ):
     # 🔄 Координаты → сохраняем в location как строку "lat,lon"
     if user_update.location is not None:
-    current_user.location = user_update.location
+        current_user.location = user_update.location
 
     # 🔄 Имя
     if user_update.name is not None:

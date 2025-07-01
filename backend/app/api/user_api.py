@@ -61,18 +61,39 @@ def update_me(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # 🔄 Обновим координаты, если переданы
+    # 🔄 Координаты → сохраняем в location как строку "lat,lon"
     if user_update.latitude is not None and user_update.longitude is not None:
-        current_user.location = [user_update.latitude, user_update.longitude]
+        current_user.location = f"{user_update.latitude},{user_update.longitude}"
+
+    # 🔄 Имя
+    if user_update.name is not None:
+        current_user.name = user_update.name
+
+    # 🔄 Телефон
+    if user_update.phone is not None:
+        current_user.phone = user_update.phone
+
+    # 🔄 Квалификация
+    if user_update.qualification is not None:
+        current_user.qualification = user_update.qualification
+
+    # 🔄 Тариф
+    if user_update.rate is not None:
+        current_user.rate = user_update.rate
 
     # 🔄 Статус
     if user_update.status is not None:
         current_user.status = user_update.status
 
-    # 🔄 Адрес (если передаётся отдельно)
+    # 🔄 Адрес
     if user_update.address is not None:
         current_user.address = user_update.address
 
+    # 🔄 Роль (если вдруг нужно разрешить менять — по умолчанию не трогаем)
+    if user_update.role is not None:
+        current_user.role = user_update.role
+
+    # ✅ Сохраняем
     db.add(current_user)
     db.commit()
     db.refresh(current_user)
@@ -80,10 +101,16 @@ def update_me(
     return {
         "message": "Профиль обновлён",
         "id": current_user.id,
-        "status": current_user.status,
+        "name": current_user.name,
+        "phone": current_user.phone,
+        "role": current_user.role,
         "location": current_user.location,
+        "qualification": current_user.qualification,
+        "rate": current_user.rate,
+        "status": current_user.status,
         "address": current_user.address
     }
+
 @router.post("/users/change-password")
 def change_password(
     data: ChangePasswordRequest,

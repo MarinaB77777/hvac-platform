@@ -22,3 +22,4 @@ class User(Base):
     qualification = Column(String, nullable=True)                 # квалификация (HVAC)
     rate = Column(Integer, nullable=True)                         # тариф или ставка
     status = Column(String, nullable=True)                        # активен / заблокирован / уволен и т.п.
+    address = Column(String, nullable=True)

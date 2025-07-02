@@ -16,10 +16,12 @@ class UserUpdate(BaseModel):
     phone: Optional[str] = None
     password: Optional[str] = None
     qualification: Optional[str] = None
-    rate: Optional[int] = None
+    rate: Optional[float] = None
     location: Optional[str] = None
-    status: Optional[str]
-    address: Optional[str]
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    address: Optional[str] = None
+    status: Optional[str] = None
     
 class ChangePasswordRequest(BaseModel):
     old_password: str

@@ -89,10 +89,6 @@ def update_me(
     if user_update.address is not None:
         current_user.address = user_update.address
 
-    # 🔄 Роль (если вдруг нужно разрешить менять — по умолчанию не трогаем)
-    if user_update.role is not None:
-        current_user.role = user_update.role
-
     # ✅ Сохраняем
     db.add(current_user)
     db.commit()

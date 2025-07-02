@@ -77,6 +77,9 @@ def patch_status(order_id: int, data: dict, db: Session = Depends(get_db), curre
 def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if current_user.role != "hvac":
         raise HTTPException(status_code=403, detail="Only HVACs can access this.")
+
+    print(f"🛠️ HVAC #{current_user.id} запрашивает свои заказы")
+
     return db.query(Order).filter(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id

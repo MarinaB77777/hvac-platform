@@ -16,6 +16,7 @@ from app.services.order_service import (
 )
 from app.services.auth import get_current_user
 from app.models.user import User
+from app.models.order import Order, OrderStatus
 from app.db import get_db
 
 router = APIRouter()

@@ -73,6 +73,19 @@ def patch_status(order_id: int, data: dict, db: Session = Depends(get_db), curre
     order["updated_at"] = str(datetime.utcnow())
     return order
 
+@router.patch("/orders/{order_id}")
+def update_order(order_id: int, data: dict, db: Session = Depends(get_db), user=Depends(get_current_user)):
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    if "diagnostic_url" in data:
+        order.diagnostic_url = data["diagnostic_url"]
+
+    db.commit()
+    db.refresh(order)
+    return {"status": "ok", "diagnostic_url": order.diagnostic_url}
+
 @router.get("/orders/assigned")
 def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if current_user.role != "hvac":

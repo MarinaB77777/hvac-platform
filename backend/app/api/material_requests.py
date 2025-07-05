@@ -2,11 +2,14 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
+from typing import List, Optional
 from app.db import get_db
 from app.services.auth import get_current_user
 from app.models.user import User
 from app.models.material import Material
 from app.models.material_request import MaterialRequest
+from app.schemas.material_request import MaterialRequestCreate, MaterialRequestOut
+
 
 router = APIRouter(prefix="/material-requests", tags=["Material Requests"])
 
@@ -120,5 +123,4 @@ def get_requests_by_order(
     if current_user.role == "hvac":
         query = query.filter(MaterialRequest.hvac_id == current_user.id)
 
-    return query.all()
-
+   

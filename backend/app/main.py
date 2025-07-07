@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
+from app.api import hvac_materials
 from app.db import Base
 from app.api.warehouse_recognition import warehouse_recognition
 from app.api import (
@@ -39,6 +40,7 @@ app.include_router(warehouse_api.router)
 app.include_router(hvac_api.router)
 app.include_router(material_requests.router)
 app.include_router(materials.router)
+app.include_router(hvac_materials.router)
 app.include_router(orders.router)
 app.include_router(warehouse_recognition.router)
 

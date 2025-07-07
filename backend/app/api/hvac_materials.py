@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
 from app.services.auth import get_current_user
 
-router = APIRouter()
+router = APIRouter(prefix="/my-materials", tags=["hvac-materials"])
 
-# Mock список выданных материалов
+# 🔹 Mock список выданных материалов
 hvac_materials = [
     {
         "hvac_id": 2,
@@ -23,13 +23,15 @@ hvac_materials = [
     }
 ]
 
-@router.get("/my-materials/")
+# 🔹 Получить список выданных материалов для текущего HVAC
+@router.post("/")
 def get_my_materials(user=Depends(get_current_user)):
     if user["role"] != "hvac":
         raise HTTPException(status_code=403, detail="Only HVAC has materials")
     return [m for m in hvac_materials if m["hvac_id"] == user["id"]]
 
-@router.post("/my-materials/use")
+# 🔹 Обновить использование конкретного материала (по заказу)
+@router.post("/use")
 def use_material(data: dict = Body(...), user=Depends(get_current_user)):
     if user["role"] != "hvac":
         raise HTTPException(status_code=403, detail="Only HVAC can update usage")

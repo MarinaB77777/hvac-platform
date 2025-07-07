@@ -1,8 +1,8 @@
 # app/api/material_requests.py
 
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List
 from app.db import get_db
 from app.services.auth import get_current_user
 from app.models.user import User
@@ -10,29 +10,28 @@ from app.models.material import Material
 from app.models.material_request import MaterialRequest
 from app.schemas.material_request import MaterialRequestCreate, MaterialRequestOut
 
-
 router = APIRouter(prefix="/material-requests", tags=["Material Requests"])
 
 
 # 🔹 Создать заявку на материал (HVAC)
-@router.post("/")
+@router.post("/", response_model=MaterialRequestOut)
 def create_material_request(
-    data: dict = Body(...),
+    request_in: MaterialRequestCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "hvac":
         raise HTTPException(status_code=403, detail="Only HVAC can create requests")
 
-    material = db.query(Material).filter(Material.id == data["material_id"]).first()
+    material = db.query(Material).filter(Material.id == request_in.material_id).first()
     if not material:
         raise HTTPException(status_code=404, detail="Material not found")
 
     request = MaterialRequest(
         hvac_id=current_user.id,
-        order_id=data.get("order_id"),
-        material_id=data["material_id"],
-        quantity=data["quantity"],
+        order_id=request_in.order_id,
+        material_id=request_in.material_id,
+        quantity=request_in.quantity,
         status="pending",
     )
     db.add(request)
@@ -42,7 +41,7 @@ def create_material_request(
 
 
 # 🔹 Получить все заявки (warehouse)
-@router.get("/")
+@router.get("/", response_model=List[MaterialRequestOut])
 def list_all_requests(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -52,8 +51,8 @@ def list_all_requests(
     return db.query(MaterialRequest).all()
 
 
-# 🔹 Подтвердить заявку
-@router.post("/{request_id}/confirm")
+# 🔹 Подтвердить заявку (warehouse)
+@router.post("/{request_id}/confirm", response_model=MaterialRequestOut)
 def confirm_request(
     request_id: int,
     db: Session = Depends(get_db),
@@ -72,8 +71,8 @@ def confirm_request(
     return request
 
 
-# 🔹 Выдать материал по заявке
-@router.post("/{request_id}/issue")
+# 🔹 Выдать материал по заявке и обновить qty_issued
+@router.post("/{request_id}/issue", response_model=MaterialRequestOut)
 def issue_material(
     request_id: int,
     db: Session = Depends(get_db),
@@ -89,13 +88,21 @@ def issue_material(
     if request.status != "confirmed":
         raise HTTPException(status_code=400, detail="Request must be confirmed first")
 
+    material = db.query(Material).filter(Material.id == request.material_id).first()
+    if not material:
+        raise HTTPException(status_code=404, detail="Material not found")
+
+    # Обновить qty_issued
+    material.qty_issued += request.quantity
     request.status = "issued"
+
     db.commit()
     db.refresh(request)
     return request
 
-# 🔹 Получить только свои заявки (HVAC)
-@router.get("/my-requests")
+
+# 🔹 Получить свои заявки (HVAC)
+@router.get("/my-requests", response_model=List[MaterialRequestOut])
 def get_my_requests(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -107,13 +114,12 @@ def get_my_requests(
 
 
 # 🔹 Получить заявки по конкретному заказу
-@router.get("/by-order/{order_id}")
+@router.get("/by-order/{order_id}", response_model=List[MaterialRequestOut])
 def get_requests_by_order(
     order_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # Доступ разрешён warehouse, manager и hvac, если заявка его
     allowed_roles = ["warehouse", "manager", "hvac"]
     if current_user.role not in allowed_roles:
         raise HTTPException(status_code=403, detail="Access denied")
@@ -123,4 +129,4 @@ def get_requests_by_order(
     if current_user.role == "hvac":
         query = query.filter(MaterialRequest.hvac_id == current_user.id)
 
-   
+    return query.all()

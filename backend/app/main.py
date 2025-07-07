@@ -57,6 +57,9 @@ with engine.connect() as conn:
     conn.execute(text("""
         ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS material_id INTEGER;
     """))
+    conn.execute(text("""
+        ALTER TABLE material_requests ALTER COLUMN order_id DROP NOT NULL;
+    """))
     conn.commit()
 
 # ✅ Полная миграция таблицы materials (все необходимые поля)

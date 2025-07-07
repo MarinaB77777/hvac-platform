@@ -100,7 +100,24 @@ with engine.connect() as conn:
     conn.execute(text("""
         ALTER TABLE materials ADD COLUMN IF NOT EXISTS status VARCHAR;
     """))
-  
+
+# 📦 Полная миграция таблицы material_requests (все необходимые поля)
+with engine.connect() as conn:
+    conn.execute(text("""
+        ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS material_id INTEGER;
+    """))
+    conn.execute(text("""
+        ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS order_id INTEGER;
+    """))
+    conn.execute(text("""
+        ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS hvac_id INTEGER;
+    """))
+    conn.execute(text("""
+        ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS quantity INTEGER;
+    """))
+    conn.execute(text("""
+        ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS status VARCHAR DEFAULT 'pending';
+    """))
 
 # ✅ Вставка тестового материала (без material_type)
 with engine.connect() as conn:

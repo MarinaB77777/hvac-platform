@@ -124,6 +124,7 @@ with engine.connect() as conn:
     conn.execute(text("""
         ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS status VARCHAR DEFAULT 'pending';
     """))
+    conn.commit()
 
 # ✅ Вставка тестового материала (без material_type)
 with engine.connect() as conn:

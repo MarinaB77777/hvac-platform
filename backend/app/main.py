@@ -60,6 +60,9 @@ with engine.connect() as conn:
     conn.execute(text("""
         ALTER TABLE material_requests ALTER COLUMN order_id DROP NOT NULL;
     """))
+    conn.execute(text("""
+    ALTER TABLE material_requests DROP COLUMN IF EXISTS name;
+    """))
     conn.commit()
 
 # ✅ Полная миграция таблицы materials (все необходимые поля)

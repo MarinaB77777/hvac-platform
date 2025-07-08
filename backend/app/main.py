@@ -61,10 +61,11 @@ with engine.connect() as conn:
         ALTER TABLE material_requests ALTER COLUMN order_id DROP NOT NULL;
     """))
     conn.execute(text("""
-    ALTER TABLE material_requests DROP COLUMN IF EXISTS name;
+        ALTER TABLE material_requests DROP COLUMN IF EXISTS name;
     """))
     conn.commit()
-    with engine.connect() as conn:
+    
+with engine.connect() as conn:
     conn.execute(text("""
         ALTER TABLE material_requests DROP COLUMN IF EXISTS qty;
     """))

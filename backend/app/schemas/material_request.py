@@ -10,7 +10,7 @@ class MaterialBaseInfo(BaseModel):
     model: Optional[str]
     brand: Optional[str]
 
- class Config:
+    class Config:
         from_attributes = True
 
 class MaterialRequestOut(BaseModel):
@@ -22,5 +22,5 @@ class MaterialRequestOut(BaseModel):
     status: str
     material: Optional[MaterialBaseInfo]
 
-class Config:
-    from_attributes = True
+    class Config:
+        from_attributes = True

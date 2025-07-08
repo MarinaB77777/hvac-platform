@@ -64,6 +64,11 @@ with engine.connect() as conn:
     ALTER TABLE material_requests DROP COLUMN IF EXISTS name;
     """))
     conn.commit()
+    with engine.connect() as conn:
+    conn.execute(text("""
+        ALTER TABLE material_requests DROP COLUMN IF EXISTS qty;
+    """))
+    conn.commit()
 
 # ✅ Полная миграция таблицы materials (все необходимые поля)
 with engine.connect() as conn:

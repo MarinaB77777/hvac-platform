@@ -28,11 +28,11 @@ def create_material_request(
         raise HTTPException(status_code=404, detail="Material not found")
 
     request = MaterialRequest(
-        hvac_id=current_user.id,
-        order_id=request_in.order_id,
         material_id=request_in.material_id,
+        order_id=request_in.order_id,
+        hvac_id=current_user.id,
         quantity=request_in.quantity,
-        status="pending",
+        status="pending"
     )
     db.add(request)
     db.commit()

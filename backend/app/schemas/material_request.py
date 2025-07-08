@@ -2,20 +2,25 @@
 
 from pydantic import BaseModel
 from typing import Optional
+from datetime import date
 
+class MaterialBaseInfo(BaseModel):
+    id: int
+    name: Optional[str]
+    model: Optional[str]
+    brand: Optional[str]
 
-class MaterialRequestCreate(BaseModel):
-    material_id: int
-    order_id: Optional[int] = None
-    quantity: int
+ class Config:
+        from_attributes = True
 
 class MaterialRequestOut(BaseModel):
     id: int
     material_id: int
-    order_id: Optional[int] = None
+    order_id: Optional[int]
     hvac_id: int
     quantity: int
     status: str
+    material: Optional[MaterialBaseInfo]
 
 class Config:
     from_attributes = True

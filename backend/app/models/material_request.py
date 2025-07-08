@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from app.db import Base
 
 class MaterialRequest(Base):
@@ -10,3 +11,5 @@ class MaterialRequest(Base):
     hvac_id = Column(Integer, nullable=False)
     quantity = Column(Integer, nullable=False)
     status = Column(String, default="pending")
+
+    material = relationship("Material", lazy="joined")

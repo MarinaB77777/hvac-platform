@@ -18,6 +18,7 @@ from app.api import (
 )
 from app.models.material import Material
 from app.models.material_request import MaterialRequest
+from app.models import material_usage
 
 app = FastAPI()
 

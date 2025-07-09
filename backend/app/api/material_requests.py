@@ -51,26 +51,6 @@ def list_all_requests(
     return db.query(MaterialRequest).all()
 
 
-# 🔹 Подтвердить заявку (warehouse)
-@router.post("/{request_id}/confirm", response_model=MaterialRequestOut)
-def confirm_request(
-    request_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    if current_user.role != "warehouse":
-        raise HTTPException(status_code=403, detail="Only warehouse can confirm requests")
-
-    request = db.query(MaterialRequest).filter(MaterialRequest.id == request_id).first()
-    if not request:
-        raise HTTPException(status_code=404, detail="Request not found")
-
-    request.status = "confirmed"
-    db.commit()
-    db.refresh(request)
-    return request
-
-
 # 🔹 Выдать материал по заявке и обновить qty_issued
 @router.post("/{request_id}/issue", response_model=MaterialRequestOut)
 def issue_material(
@@ -84,9 +64,6 @@ def issue_material(
     request = db.query(MaterialRequest).filter(MaterialRequest.id == request_id).first()
     if not request:
         raise HTTPException(status_code=404, detail="Request not found")
-
-    if request.status != "confirmed":
-        raise HTTPException(status_code=400, detail="Request must be confirmed first")
 
     material = db.query(Material).filter(Material.id == request.material_id).first()
     if not material:

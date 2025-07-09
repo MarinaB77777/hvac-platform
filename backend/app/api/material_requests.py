@@ -70,6 +70,8 @@ def issue_material(
         raise HTTPException(status_code=404, detail="Material not found")
 
     # Обновить qty_issued
+    if material.qty_issued is None:
+        material.qty_issued = 0
     material.qty_issued += request.quantity
     request.status = "issued"
 

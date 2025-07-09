@@ -19,6 +19,8 @@ from app.api import (
 from app.models.material import Material
 from app.models.material_request import MaterialRequest
 from app.models import material_usage
+from app.models.material_usage import MaterialUsage
+from app.api import material_usage
 
 app = FastAPI()
 
@@ -43,6 +45,7 @@ app.include_router(material_requests.router)
 app.include_router(materials.router)
 app.include_router(hvac_materials.router)
 app.include_router(orders.router)
+app.include_router(material_usage.router)
 app.include_router(warehouse_recognition.router)
 
 # 🛠 Подключение к БД

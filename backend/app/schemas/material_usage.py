@@ -19,7 +19,7 @@ class MaterialUsageCreate(MaterialUsageBase):
 
 class MaterialUsageOut(MaterialUsageBase):
     id: int
-    used_at: datetime
+    used_date: Optional[datetime] = None  
     
     class Config:
         from_attributes = True

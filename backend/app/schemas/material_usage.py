@@ -1,5 +1,5 @@
 # app/schemas/material_usage.py
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
@@ -8,8 +8,7 @@ class MaterialUsageBase(BaseModel):
     order_id: int
     material_id: int
     quantity_used: int
-
-    # копии свойств материала (в ответе нужны)
+    # копии свойств материала (как в модели SQLAlchemy)
     name: Optional[str] = None
     brand: Optional[str] = None
     model: Optional[str] = None
@@ -18,11 +17,13 @@ class MaterialUsageBase(BaseModel):
     price_mxn: Optional[float] = None
 
 class MaterialUsageCreate(MaterialUsageBase):
+    # ничего не добавляем, фронту не нужно слать дату
     pass
 
 class MaterialUsageOut(MaterialUsageBase):
     id: int
-    used_date: datetime  # <= важно: не used_at
+    used_at: datetime = Field(alias="used_date")  # ← ключевая строка
 
     class Config:
         from_attributes = True
+        populate_by_name = True

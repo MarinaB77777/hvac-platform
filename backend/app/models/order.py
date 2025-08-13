@@ -26,6 +26,7 @@ class Order(Base):
     description = Column(String, nullable=True)               # Описание поломки
 
     diagnostic_url = Column(String, nullable=True)            # 📎 Файл диагностики
+    result_file_url = Column(String, nullable=True)           # 📎 Файл результата работы
     client_agreed = Column(String, default="false")           # Согласие клиента
     repair_cost = Column(Integer, nullable=True)              # 💸 Стоимость ремонта
 
@@ -33,3 +34,4 @@ class Order(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
+

@@ -28,10 +28,23 @@ class Order(Base):
     diagnostic_url = Column(String, nullable=True)            # 📎 Файл диагностики
     result_file_url = Column(String, nullable=True)           # 📎 Файл результата работы
     client_agreed = Column(String, default="false")           # Согласие клиента
-    repair_cost = Column(Integer, nullable=True)              # 💸 Стоимость ремонта
+    
+    # 💰 Компоненты стоимости
+    diagnostic_cost = Column(Integer, nullable=True)        # Фиксированная стоимость диагностики
+    distance_cost = Column(Integer, nullable=True)          # Стоимость дороги (расстояние * RATE_PER_KM)
+    parts_cost = Column(Integer, nullable=True)             # Стоимость материалов (запчастей)
+
+    # 💸 Общие итоговые суммы
+    repair_cost = Column(Integer, nullable=True)            # 💡 Стоимость работы = parts_cost + 20%
+    agreed_total_mxn = Column(Integer, nullable=True)       # 💵 Сумма, с которой клиент согласился (в MXN)
+    
+    # 💱 Валюта и способ оплаты
+    currency = Column(String, nullable=True)                # Валюта заказа (например, 'USD' или 'MXN')
+    payment_type = Column(String, nullable=True)            # Способ оплаты (например, 'наличные')
 
     created_at = Column(DateTime, default=datetime.utcnow)    # Дата создания
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
+
 

@@ -79,12 +79,20 @@ def update_order(order_id: int, data: dict, db: Session = Depends(get_db), user=
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
-    if "diagnostic_url" in data:
-        order.diagnostic_url = data["diagnostic_url"]
+    allowed_fields = [
+        "diagnostic_url", "diagnostic_cost", "distance_cost", "parts_cost",
+        "repair_cost", "agreed_total_mxn", "currency", "payment_type"
+    ]
+    for field in allowed_fields:
+        if field in data:
+            setattr(order, field, data[field])
 
     db.commit()
     db.refresh(order)
-    return {"status": "ok", "diagnostic_url": order.diagnostic_url}
+
+    return {"status": "ok", "updated_order": {
+        field: getattr(order, field) for field in allowed_fields
+    }}
 
 @router.get("/orders/assigned")
 def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -97,3 +105,4 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+

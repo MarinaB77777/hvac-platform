@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Date
 from sqlalchemy.orm import relationship
+from datetime import datetime 
 from app.db import Base
 
 class MaterialRequest(Base):
@@ -11,5 +12,6 @@ class MaterialRequest(Base):
     hvac_id = Column(Integer, nullable=False)
     quantity = Column(Integer, nullable=False)
     status = Column(String, default="pending")
+    issued_date = Column(DateTime, default=datetime.utcnow)
 
     material = relationship("Material", backref="requests")  # для joined view

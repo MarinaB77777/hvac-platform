@@ -141,6 +141,29 @@ with engine.connect() as conn:
         ALTER TABLE orders ADD COLUMN IF NOT EXISTS result_file_url VARCHAR;
     """))
     conn.commit()
+with engine.connect() as conn:
+    conn.execute(text("""
+        ALTER TABLE orders ADD COLUMN IF NOT EXISTS diagnostic_cost INTEGER;
+    """))
+    conn.execute(text("""
+        ALTER TABLE orders ADD COLUMN IF NOT EXISTS distance_cost INTEGER;
+    """))
+    conn.execute(text("""
+        ALTER TABLE orders ADD COLUMN IF NOT EXISTS parts_cost INTEGER;
+    """))
+    conn.execute(text("""
+        ALTER TABLE orders ADD COLUMN IF NOT EXISTS repair_cost INTEGER;
+    """))
+    conn.execute(text("""
+        ALTER TABLE orders ADD COLUMN IF NOT EXISTS agreed_total_mxn INTEGER;
+    """))
+    conn.execute(text("""
+        ALTER TABLE orders ADD COLUMN IF NOT EXISTS currency VARCHAR;
+    """))
+    conn.execute(text("""
+        ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_type VARCHAR;
+    """))
+    conn.commit()
 
 # ✅ Вставка тестового материала (без material_type)
 with engine.connect() as conn:

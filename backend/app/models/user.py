@@ -23,3 +23,4 @@ class User(Base):
     rate = Column(Integer, nullable=True)                         # тариф или ставка
     status = Column(String, nullable=True)                        # активен / заблокирован / уволен и т.п.
     address = Column(String, nullable=True)
+    tarif = Column(Float, default=20.0)  # процент от стоимости расходников

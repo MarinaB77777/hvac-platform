@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.db import get_db
 from app.models.user import User
+from app.services.user_service import update_user
+from app.schemas.user import UserUpdate
 
 router = APIRouter()
 
@@ -33,3 +35,18 @@ def get_employees(
         }
         for u in employees
     ]
+
+@router.put("/users/{user_id}")
+def update_hvac_user(user_id: int, user_data: UserUpdate, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id, User.role == 'hvac').first()
+    if not user:
+        raise HTTPException(status_code=404, detail="HVAC-пользователь не найден")
+
+    updated = update_user(db, user_id, user_data)
+    return {
+        "id": updated.id,
+        "name": updated.name,
+        "phone": updated.phone,
+        "qualification": updated.qualification,
+        "status": updated.status
+    }

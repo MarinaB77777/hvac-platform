@@ -30,6 +30,7 @@ def get_employees(
             "phone": u.phone,
             "qualification": u.qualification,
             "rate": u.rate,
+            "tarif": u.tarif,  
             "status": u.status,
             "location": u.location
         }

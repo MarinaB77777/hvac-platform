@@ -168,6 +168,15 @@ with engine.connect() as conn:
     """))
     conn.commit()
 
+with engine.connect() as conn:
+    conn.execute(text("""
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS address VARCHAR;
+    """))
+    conn.execute(text("""
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS tarif INTEGER DEFAULT 20;
+    """))
+    conn.commit()
+
 # ✅ Вставка тестового материала (без material_type)
 with engine.connect() as conn:
     result = conn.execute(text("SELECT COUNT(*) FROM materials"))

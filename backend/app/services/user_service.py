@@ -17,6 +17,8 @@ def create_user(db: Session, user_data: UserCreate):
         rate=user_data.rate,
         status=user_data.status,
         address=None  # по умолчанию, потом можно обновить
+        tarif=user_data.tarif if user_data.tarif is not None else 20,
+
     )
     db.add(user)
     db.commit()
@@ -49,6 +51,8 @@ def update_user(db: Session, user_id: int, user_data: UserUpdate):
         user.address = user_data.address
     if user_data.status is not None:
         user.status = user_data.status
+    if user_data.tarif is not None:
+        user.tarif = user_data.tarif
     
     db.add(user)
     db.commit()

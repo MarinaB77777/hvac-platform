@@ -16,7 +16,7 @@ def create_user(db: Session, user_data: UserCreate):
         qualification=user_data.qualification,
         rate=user_data.rate,
         status=user_data.status,
-        address=None  # по умолчанию, потом можно обновить
+        address=None,  # по умолчанию, потом можно обновить
         tarif=user_data.tarif if user_data.tarif is not None else 20,
 
     )

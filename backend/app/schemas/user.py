@@ -9,7 +9,8 @@ class UserCreate(BaseModel):
     location: Optional[str] = None
     qualification: Optional[str] = None
     rate: Optional[int] = None
-    status: Optional[str] = None 
+    status: Optional[str] = None
+    tarif: Optional[int] = 20   # ← добавляем тут
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
@@ -22,6 +23,7 @@ class UserUpdate(BaseModel):
     longitude: Optional[float] = None
     address: Optional[str] = None
     status: Optional[str] = None
+    tarif: Optional[int] = None   # ← и тут
     
 class ChangePasswordRequest(BaseModel):
     old_password: str

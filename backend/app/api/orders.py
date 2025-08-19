@@ -19,6 +19,7 @@ from app.models.user import User
 from app.models.order import Order, OrderStatus
 from app.db import get_db
 
+
 router = APIRouter()
 
 @router.post("/orders")
@@ -62,16 +63,16 @@ def upload_result(order_id: int, data: dict, db: Session = Depends(get_db), curr
 def upload_diagnostic(order_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return upload_diagnostic_file(db, current_user.id, order_id, data.get("url"))
 
-@router.post("/orders/{order_id}/rate")
-def rate(order_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return rate_order(db, current_user.id, order_id, data.get("rating"))
-
 @router.patch("/orders/{order_id}/status")
 def patch_status(order_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     new_status = data.get("status")
     order = update_order_status(db, current_user.id, order_id, new_status)
     order["updated_at"] = str(datetime.utcnow())
     return order
+
+@router.post("/orders/{order_id}/rate")
+def rate(order_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return rate_order(db, current_user.id, order_id, data.get("rating"))
 
 @router.patch("/orders/{order_id}")
 def update_order(order_id: int, data: dict, db: Session = Depends(get_db), user=Depends(get_current_user)):
@@ -105,4 +106,5 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+
 

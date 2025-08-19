@@ -93,9 +93,9 @@ def upload_diagnostic_file(db: Session, hvac_id: int, order_id: int, url: str):
     db.commit()
     return order
 
-def rate_order(db: Session, hvac_id: int, order_id: int, rating: int):
-    order = db.query(Order).filter(Order.id == order_id, Order.hvac_id == hvac_id).first()
-    if not order:
+def rate_order(db: Session, client_id: int, order_id: int, rating: int):
+    order = db.query(Order).filter(Order.id == order_id, Order.client_id == client_id).first()
+    if not order or order.rating is not None:
         return None
     order.rating = rating
     db.commit()

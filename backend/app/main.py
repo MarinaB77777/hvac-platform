@@ -158,6 +158,9 @@ with engine.connect() as conn:
         ALTER TABLE orders ADD COLUMN IF NOT EXISTS agreed_total_mxn INTEGER;
     """))
     conn.execute(text("""
+    ALTER TABLE orders ADD COLUMN IF NOT EXISTS rating INTEGER;
+    """))
+    conn.execute(text("""
         ALTER TABLE orders ADD COLUMN IF NOT EXISTS currency VARCHAR;
     """))
     conn.execute(text("""

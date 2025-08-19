@@ -72,7 +72,14 @@ def patch_status(order_id: int, data: dict, db: Session = Depends(get_db), curre
 
 @router.post("/orders/{order_id}/rate")
 def rate(order_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return rate_order(db, current_user.id, order_id, data.get("rating"))
+    rating = data.get("rating")
+    if not isinstance(rating, int) or not (1 <= rating <= 5):
+        raise HTTPException(status_code=400, detail="Rating must be an integer from 1 to 5")
+
+    result = rate_order(db, current_user.id, order_id, rating)
+    if not result:
+        raise HTTPException(status_code=403, detail="Unable to rate this order. It may be already rated or doesn't belong to you.")
+    return {"status": "ok", "rating": rating}
 
 @router.patch("/orders/{order_id}")
 def update_order(order_id: int, data: dict, db: Session = Depends(get_db), user=Depends(get_current_user)):
@@ -106,5 +113,6 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+
 
 

@@ -2,19 +2,56 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
 from app.models.order import Order, OrderStatus
+from math import radians, cos, sin, sqrt, atan2
+from app.models.user import User
+
+def haversine(lat1, lon1, lat2, lon2):
+    R = 6371  # радиус Земли в км
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+    a = sin(dlat / 2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    return R * c
 
 def create_order(db: Session, client_id: int, data: dict):
+    hvac_id = data.get("hvac_id")
+    hvac = db.query(User).filter(User.id == hvac_id).first()
+    
+    if not hvac:
+        raise Exception("Исполнитель не найден")
+
+    # координаты клиента
+    lat_client = data.get("lat")
+    lng_client = data.get("lng")
+
+    # координаты исполнителя
+    lat_hvac = hvac.latitude
+    lng_hvac = hvac.longitude
+
+    # тариф за км
+    rate_per_km = hvac.qualification or 25  # по умолчанию 25
+
+    # расчёт стоимости дороги
+    distance_km = haversine(lat_client, lng_client, lat_hvac, lng_hvac)
+    distance_cost = int(distance_km * rate_per_km)
+
+    # фиксированная цена диагностики
+    diagnostic_cost = 500
+
     order = Order(
         client_id=client_id,
-        hvac_id=data.get("hvac_id"),
+        hvac_id=hvac_id,
         address=data.get("address"),
-        lat=data.get("lat"),
-        lng=data.get("lng"),
+        lat=lat_client,
+        lng=lng_client,
         description=data.get("description"),
         status=OrderStatus.new,
         created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        updated_at=datetime.utcnow(),
+        diagnostic_cost=diagnostic_cost,
+        distance_cost=distance_cost,
     )
+
     db.add(order)
     db.commit()
     db.refresh(order)

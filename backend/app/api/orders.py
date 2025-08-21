@@ -57,6 +57,8 @@ def mine(db: Session = Depends(get_db), current_user: User = Depends(get_current
 
 @router.get("/orders/all")
 def get_all_orders(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.role != "manager":
+        raise HTTPException(status_code=403, detail="Only managers can access this endpoint.")
     return db.query(Order).all()
 
 @router.post("/orders/{order_id}/upload-result")
@@ -117,6 +119,7 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+
 
 
 

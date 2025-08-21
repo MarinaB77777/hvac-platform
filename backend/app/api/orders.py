@@ -55,11 +55,40 @@ def complete(order_id: int, db: Session = Depends(get_db), current_user: User = 
 def mine(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return get_orders_for_hvac(db, current_user.id)
 
-@router.get("/orders/all")
-def get_all_orders(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+@router.get("/orders/active-for-manager")
+def active_orders_for_manager(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if current_user.role != "manager":
-        raise HTTPException(status_code=403, detail="Only managers can access this endpoint.")
-    return db.query(Order).all()
+        raise HTTPException(status_code=403, detail="Only managers can access this.")
+
+    active_orders = db.query(Order).filter(Order.status != "completed").all()
+
+    result = []
+    for order in active_orders:
+        client = db.query(User).filter(User.id == order.client_id).first()
+        hvac_user = db.query(User).filter(User.id == order.hvac_id).first() if order.hvac_id else None
+
+        result.append({
+            "id": order.id,
+            "status": order.status,
+            "address": order.address,
+            "description": order.description,
+            "lat": order.lat,
+            "lng": order.lng,
+            "created_at": order.created_at,
+            "client": {
+                "id": client.id,
+                "name": client.name,
+                "location": client.location if client else None
+            },
+            "hvac": {
+                "id": hvac_user.id,
+                "name": hvac_user.name,
+                "status": hvac_user.status,
+                "location": hvac_user.location
+            } if hvac_user else None
+        })
+
+    return result
 
 @router.post("/orders/{order_id}/upload-result")
 def upload_result(order_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -119,6 +148,7 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+
 
 
 

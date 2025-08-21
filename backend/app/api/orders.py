@@ -55,6 +55,10 @@ def complete(order_id: int, db: Session = Depends(get_db), current_user: User = 
 def mine(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return get_orders_for_hvac(db, current_user.id)
 
+@router.get("/orders/all")
+def get_all_orders(db: Session = Depends(get_db)):
+    return db.query(Order).all()
+
 @router.post("/orders/{order_id}/upload-result")
 def upload_result(order_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return upload_result_file(db, current_user.id, order_id, data.get("url"))
@@ -113,6 +117,7 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+
 
 
 

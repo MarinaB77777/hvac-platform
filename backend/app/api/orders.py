@@ -55,7 +55,7 @@ def complete(order_id: int, db: Session = Depends(get_db), current_user: User = 
 def mine(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return get_orders_for_hvac(db, current_user.id)
 
-@router.get("/orders/active-for-manager")
+@router.get("/active-for-manager")
 def active_orders_for_manager(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if current_user.role != "manager":
         raise HTTPException(status_code=403, detail="Only managers can access this.")
@@ -148,6 +148,7 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+
 
 
 

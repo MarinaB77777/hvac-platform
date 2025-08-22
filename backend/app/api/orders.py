@@ -123,7 +123,7 @@ def all_orders_for_manager(
                 "id": client.id,
                 "name": client.name,
                 "location": client.location if client else None
-            } if client else None,
+            },
             "hvac": {
                 "id": hvac_user.id,
                 "name": hvac_user.name,
@@ -192,6 +192,7 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+
 
 
 

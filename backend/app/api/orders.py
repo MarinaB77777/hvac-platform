@@ -117,8 +117,7 @@ def all_orders_for_manager(
             "diagnostic_cost": order.diagnostic_cost,
             "distance_cost": order.distance_cost,
             "agreed_total_mxn": order.agreed_total_mxn,
-            "start_time": order.start_time,
-            "end_time": order.end_time,
+            "total_time": str(order.completed_at - order.started_at) if order.started_at and order.completed_at else None,
             "client": {
                 "id": client.id,
                 "name": client.name,
@@ -192,6 +191,7 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+
 
 
 

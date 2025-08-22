@@ -112,7 +112,9 @@ def all_orders_for_manager(
             "description": order.description,
             "lat": order.lat,
             "lng": order.lng,
-            "created_at": order.created_at,
+            "started_at": order.started_at,
+            "completed_at": order.completed_at,
+            "rating": order.rating,
             "repair_cost": order.repair_cost,
             "diagnostic_cost": order.diagnostic_cost,
             "distance_cost": order.distance_cost,
@@ -191,6 +193,7 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+
 
 
 

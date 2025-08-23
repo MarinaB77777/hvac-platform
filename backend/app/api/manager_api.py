@@ -2,15 +2,16 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.db import get_db
 from app.models.user import User
+from app.models.material_usage import MaterialUsage
 from app.services.user_service import update_user
 from app.schemas.user import UserUpdate
-from app.models.material_usage import MaterialUsage
 from app.services.auth import get_current_user
 
-router = APIRouter()
+# ✅ Один корректный роутер с префиксом
+router = APIRouter(prefix="/manager", tags=["manager"])
 
 # 📋 Получить всех HVAC-сотрудников с фильтрацией
-@router.get("/manager/employees")
+@router.get("/employees")
 def get_employees(
     db: Session = Depends(get_db),
     status: str = Query(None),
@@ -32,13 +33,14 @@ def get_employees(
             "phone": u.phone,
             "qualification": u.qualification,
             "rate": u.rate,
-            "tarif": u.tarif,  
+            "tarif": u.tarif,
             "status": u.status,
             "location": u.location
         }
         for u in employees
     ]
 
+# ✏️ Обновить HVAC-пользователя
 @router.put("/users/{user_id}")
 def update_hvac_user(user_id: int, user_data: UserUpdate, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id, User.role == 'hvac').first()
@@ -54,8 +56,7 @@ def update_hvac_user(user_id: int, user_data: UserUpdate, db: Session = Depends(
         "status": updated.status
     }
 
-router = APIRouter(prefix="/manager", tags=["manager"])
-
+# 📦 Получить список использования материалов
 @router.get("/material-usage")
 def get_material_usage(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if current_user.role != "manager":

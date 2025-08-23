@@ -4,6 +4,8 @@ from app.db import get_db
 from app.models.user import User
 from app.services.user_service import update_user
 from app.schemas.user import UserUpdate
+from app.models.material_usage import MaterialUsage
+from app.services.auth import get_current_user
 
 router = APIRouter()
 
@@ -51,3 +53,28 @@ def update_hvac_user(user_id: int, user_data: UserUpdate, db: Session = Depends(
         "qualification": updated.qualification,
         "status": updated.status
     }
+
+router = APIRouter(prefix="/manager", tags=["manager"])
+
+@router.get("/material-usage")
+def get_material_usage(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.role != "manager":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    usage_records = db.query(MaterialUsage).all()
+
+    result = []
+    for usage in usage_records:
+        result.append({
+            "id": usage.id,
+            "hvac_id": usage.hvac_id,
+            "hvac_name": usage.hvac.name if usage.hvac else "—",
+            "material_name": usage.name,
+            "brand": usage.brand,
+            "model": usage.model,
+            "order_id": usage.order_id,
+            "quantity_used": usage.quantity_used,
+            "price_mxn": usage.price_mxn,
+            "used_date": usage.used_date,
+        })
+    return result

@@ -13,5 +13,7 @@ class MaterialRequest(Base):
     quantity = Column(Integer, nullable=False)
     status = Column(String, default="pending")
     issued_date = Column(DateTime, default=datetime.utcnow)
+    price_usd = Column(Float, nullable=True)
+    price_mxn = Column(Float, nullable=True)
 
     material = relationship("Material", backref="requests")  # для joined view

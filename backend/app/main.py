@@ -142,11 +142,11 @@ with engine.connect() as conn:
     """))
 
     conn.execute(text("""
-        ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS price_usd FLOAT;
+        ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS price_usd INTEGER;
     """))
 
     conn.execute(text("""
-        ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS price_mxn FLOAT;
+        ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS price_mxn INTEGER;
     """))
 
     conn.execute(text("""

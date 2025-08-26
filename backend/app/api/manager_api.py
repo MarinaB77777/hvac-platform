@@ -6,6 +6,8 @@ from app.models.material_usage import MaterialUsage
 from app.services.user_service import update_user
 from app.schemas.user import UserUpdate
 from app.services.auth import get_current_user
+from app.models.material_request import MaterialRequest
+from app.models.material import Material
 
 # ✅ Один корректный роутер с префиксом
 router = APIRouter(prefix="/manager", tags=["manager"])
@@ -55,6 +57,37 @@ def update_hvac_user(user_id: int, user_data: UserUpdate, db: Session = Depends(
         "qualification": updated.qualification,
         "status": updated.status
     }
+
+# ✅ Новый роутер для истории выдачи со склада
+@router.get("/material-issued")
+def get_material_issued(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.role != "manager":
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    from app.models.material_request import MaterialRequest
+    from app.models.material import Material
+
+    # Запрос с join к материалу для доступа к имени, бренду и модели
+    issued_records = db.query(MaterialRequest, Material).\
+        join(Material, Material.id == MaterialRequest.material_id).\
+        filter(MaterialRequest.status == "issued").all()
+
+    result = []
+    for request, material in issued_records:
+        result.append({
+            "id": request.id,
+            "hvac_id": request.hvac_id,
+            "material_name": material.name,
+            "brand": material.brand,
+            "model": material.model,
+            "order_id": request.order_id,
+            "quantity_issued": request.quantity,
+            "price_mxn": request.price_mxn,
+            "price_usd": request.price_usd,
+            "issued_date": request.issued_date,
+        })
+    return result
+
 
 # 📦 Получить список использования материалов
 @router.get("/material-usage")

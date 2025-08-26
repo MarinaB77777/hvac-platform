@@ -18,8 +18,8 @@ class MaterialUsage(Base):
     brand = Column(String, nullable=True)
     model = Column(String, nullable=True)
     specs = Column(String, nullable=True)
-    price_usd = Column(Float, nullable=True)
-    price_mxn = Column(Float, nullable=True)
+    price_usd = Column(Integer, nullable=True)
+    price_mxn = Column(Integer, nullable=True)
 
     hvac = relationship("User", backref="used_materials")
     material = relationship("Material", backref="usages")

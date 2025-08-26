@@ -24,6 +24,13 @@ class MaterialRequestOut(BaseModel):
     quantity: int
     status: str
     material: Optional[MaterialOut]  # если включено relationship
+    issued_date: datetime
+    name: Optional[str] = None
+    brand: Optional[str] = None
+    model: Optional[str] = None
+    specs: Optional[str] = None
+    price_usd: Optional[float] = None
+    price_mxn: Optional[float] = None
 
     class Config:
         from_attributes = True

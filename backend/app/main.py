@@ -150,7 +150,7 @@ with engine.connect() as conn:
     """))
 
     conn.execute(text("""
-        ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS issued_date TIMESTAMP;
+        ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS issued_date DATETIME;
     """))
     
     conn.execute(text("""

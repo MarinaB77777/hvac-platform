@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel
 from typing import Optional
-from datetime import date
+from datetime import date, datetime
 from app.schemas.material import MaterialOut  # если нужно возвращать подробности материала
 
 class MaterialBaseInfo(BaseModel):

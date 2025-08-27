@@ -8,6 +8,7 @@ from app.schemas.user import UserUpdate
 from app.services.auth import get_current_user
 from app.models.material_request import MaterialRequest
 from app.models.material import Material
+from app.models.warehouse import WarehouseRecord  # 👈 добавь импорт
 
 # ✅ Один корректный роутер с префиксом
 router = APIRouter(prefix="/manager", tags=["manager"])
@@ -60,19 +61,20 @@ def update_hvac_user(user_id: int, user_data: UserUpdate, db: Session = Depends(
 
 # ✅ Роутер истории выдачи со склада
 @router.get("/material-issued")
-def get_material_issued(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_material_issued(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     if current_user.role != "manager":
         raise HTTPException(status_code=403, detail="Access denied")
 
-    from app.models.material_request import MaterialRequest
-    from app.models.material import Material
-
-    issued_records = db.query(MaterialRequest, Material).\
+    issued_records = db.query(MaterialRequest, Material, WarehouseRecord).\
         join(Material, Material.id == MaterialRequest.material_id).\
+        join(WarehouseRecord, WarehouseRecord.material_id == Material.id).\
         filter(MaterialRequest.status == "issued").all()
 
     result = []
-    for request, material in issued_records:
+    for request, material, warehouse in issued_records:
         result.append({
             "id": request.id,
             "hvac_id": request.hvac_id,
@@ -80,10 +82,10 @@ def get_material_issued(db: Session = Depends(get_db), current_user: User = Depe
             "brand": material.brand,
             "model": material.model,
             "order_id": request.order_id,
-            "issued_date": material.issued_date,
-            "quantity_issued": material.qty_issued,
-            "price_usd": material.price_usd or 0,
-            "price_mxn": material.price_mxn or 0,
+            "issued_date": warehouse.issued_date,
+            "quantity_issued": warehouse.qty_issued,
+            "price_usd": warehouse.price_usd or 0,
+            "price_mxn": warehouse.price_mxn or 0,
         })
     return result
 

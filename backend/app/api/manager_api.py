@@ -58,7 +58,7 @@ def update_hvac_user(user_id: int, user_data: UserUpdate, db: Session = Depends(
         "status": updated.status
     }
 
-# ✅ Новый роутер для истории выдачи со склада
+# ✅ Роутер истории выдачи со склада
 @router.get("/material-issued")
 def get_material_issued(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if current_user.role != "manager":
@@ -67,7 +67,6 @@ def get_material_issued(db: Session = Depends(get_db), current_user: User = Depe
     from app.models.material_request import MaterialRequest
     from app.models.material import Material
 
-    # Запрос с join к материалу для доступа к имени, бренду и модели
     issued_records = db.query(MaterialRequest, Material).\
         join(Material, Material.id == MaterialRequest.material_id).\
         filter(MaterialRequest.status == "issued").all()
@@ -81,13 +80,12 @@ def get_material_issued(db: Session = Depends(get_db), current_user: User = Depe
             "brand": material.brand,
             "model": material.model,
             "order_id": request.order_id,
-            "quantity_issued": request.quantity,
-            "price_mxn": request.price_mxn,
-            "price_usd": request.price_usd,
-            "issued_date": request.issued_date,
+            "issued_date": material.issued_date,
+            "quantity_issued": material.qty_issued,
+            "price_usd": material.price_usd or 0,
+            "price_mxn": material.price_mxn or 0,
         })
     return result
-
 
 # 📦 Получить список использования материалов
 @router.get("/material-usage")

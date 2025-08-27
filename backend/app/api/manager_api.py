@@ -1,3 +1,5 @@
+# backend/app/api/manager_api.py
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.db import get_db
@@ -61,34 +63,38 @@ def update_hvac_user(user_id: int, user_data: UserUpdate, db: Session = Depends(
 
 # ✅ Роутер истории выдачи со склада
 @router.get("/material-issued")
-def get_material_issued(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_material_issued(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     if current_user.role != "manager":
         raise HTTPException(status_code=403, detail="Access denied")
 
-    requests = db.query(MaterialRequest).filter(MaterialRequest.issued == True).all()
+    # Заявки, которые были выданы (issued=True или статус == "issued")
+    requests = db.query(MaterialRequest).filter(MaterialRequest.status == "issued").all()
 
-    result = []
+    results = []
+
     for req in requests:
         material = db.query(Material).filter(Material.id == req.material_id).first()
         if not material:
             continue
 
-        result.append({
+        results.append({
             "id": req.id,
             "hvac_id": req.hvac_id,
-            "hvac_name": req.hvac.name if req.hvac else "—",
+            "order_id": req.order_id,
+            "material_id": req.material_id,
             "material_name": material.name,
             "brand": material.brand,
             "model": material.model,
-            "order_id": req.order_id,
-            "quantity_issued": req.qty_issued,
+            "quantity": req.quantity,
+            "issued_date": req.issued_date,
             "price_usd": material.price_usd,
             "price_mxn": material.price_mxn,
-            "issued_date": req.issued_date
         })
 
-    return result
-
+    return results
 
 # 📦 Получить список использования материалов
 @router.get("/material-usage")

@@ -8,7 +8,7 @@ from app.schemas.user import UserUpdate
 from app.services.auth import get_current_user
 from app.models.material_request import MaterialRequest
 from app.models.material import Material
-from app.models.warehouse import WarehouseRecord  # 👈 добавь импорт
+
 
 # ✅ Один корректный роутер с префиксом
 router = APIRouter(prefix="/manager", tags=["manager"])

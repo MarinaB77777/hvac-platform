@@ -68,13 +68,12 @@ def get_material_issued(
     if current_user.role != "manager":
         raise HTTPException(status_code=403, detail="Access denied")
 
-    issued_records = db.query(MaterialRequest, Material, WarehouseRecord).\
+    issued_requests = db.query(MaterialRequest).\
         join(Material, Material.id == MaterialRequest.material_id).\
-        join(WarehouseRecord, WarehouseRecord.material_id == Material.id).\
         filter(MaterialRequest.status == "issued").all()
 
     result = []
-    for request, material, warehouse in issued_records:
+    for request, material in issued_requests:
         result.append({
             "id": request.id,
             "hvac_id": request.hvac_id,
@@ -82,10 +81,10 @@ def get_material_issued(
             "brand": material.brand,
             "model": material.model,
             "order_id": request.order_id,
-            "issued_date": warehouse.issued_date,
-            "quantity_issued": warehouse.qty_issued,
-            "price_usd": warehouse.price_usd or 0,
-            "price_mxn": warehouse.price_mxn or 0,
+            "issued_date": request.issued_date,
+            "quantity_issued": request.qty_issued,
+            "price_usd": request.price_usd or 0,
+            "price_mxn": request.price_mxn or 0,
         })
     return result
 

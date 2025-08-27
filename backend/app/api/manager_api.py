@@ -68,25 +68,26 @@ def get_material_issued(
     if current_user.role != "manager":
         raise HTTPException(status_code=403, detail="Access denied")
 
-    requests = db.query(MaterialRequest).filter(MaterialRequest.status == "issued").all()
+    issued_requests = db.query(MaterialRequest).filter(MaterialRequest.status == "issued").all()
+    material_ids = list(set(req.material_id for req in issued_requests if req.material_id))
+    materials = db.query(Material).filter(Material.id.in_(material_ids)).all()
+
+    material_map = {m.id: m for m in materials}
 
     result = []
-    for req in requests:
-        material = db.query(Material).filter(Material.id == req.material_id).first()
-        if not material:
-            continue  # Пропускаем если материал вдруг удалён
-
+    for req in issued_requests:
+        material = material_map.get(req.material_id)
         result.append({
             "id": req.id,
             "hvac_id": req.hvac_id,
-            "material_name": material.name,
-            "brand": material.brand,
-            "model": material.model,
+            "material_name": material.name if material else "—",
+            "brand": material.brand if material else "—",
+            "model": material.model if material else "—",
             "order_id": req.order_id,
-            "issued_date": req.issued_date,
-            "quantity_issued": req.qty_issued,
-            "price_usd": material.price_usd or 0,
-            "price_mxn": material.price_mxn or 0,
+            "issued_date": material.issued_date if material else None,
+            "quantity_issued": req.quantity,
+            "price_usd": material.price_usd if material else 0,
+            "price_mxn": material.price_mxn if material else 0,
         })
 
     return result

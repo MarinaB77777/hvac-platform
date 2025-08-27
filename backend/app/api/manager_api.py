@@ -61,36 +61,34 @@ def update_hvac_user(user_id: int, user_data: UserUpdate, db: Session = Depends(
 
 # ✅ Роутер истории выдачи со склада
 @router.get("/material-issued")
-def get_material_issued(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
+def get_material_issued(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if current_user.role != "manager":
         raise HTTPException(status_code=403, detail="Access denied")
 
-    issued_requests = db.query(MaterialRequest).filter(MaterialRequest.status == "issued").all()
-    material_ids = list(set(req.material_id for req in issued_requests if req.material_id))
-    materials = db.query(Material).filter(Material.id.in_(material_ids)).all()
-
-    material_map = {m.id: m for m in materials}
+    requests = db.query(MaterialRequest).filter(MaterialRequest.issued == True).all()
 
     result = []
-    for req in issued_requests:
-        material = material_map.get(req.material_id)
+    for req in requests:
+        material = db.query(Material).filter(Material.id == req.material_id).first()
+        if not material:
+            continue
+
         result.append({
             "id": req.id,
             "hvac_id": req.hvac_id,
-            "material_name": material.name if material else "—",
-            "brand": material.brand if material else "—",
-            "model": material.model if material else "—",
+            "hvac_name": req.hvac.name if req.hvac else "—",
+            "material_name": material.name,
+            "brand": material.brand,
+            "model": material.model,
             "order_id": req.order_id,
-            "issued_date": material.issued_date if material else None,
-            "quantity_issued": req.quantity,
-            "price_usd": material.price_usd if material else 0,
-            "price_mxn": material.price_mxn if material else 0,
+            "quantity_issued": req.qty_issued,
+            "price_usd": material.price_usd,
+            "price_mxn": material.price_mxn,
+            "issued_date": req.issued_date
         })
 
     return result
+
 
 # 📦 Получить список использования материалов
 @router.get("/material-usage")

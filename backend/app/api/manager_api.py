@@ -68,24 +68,27 @@ def get_material_issued(
     if current_user.role != "manager":
         raise HTTPException(status_code=403, detail="Access denied")
 
-    issued_requests = db.query(MaterialRequest).\
-        join(Material, Material.id == MaterialRequest.material_id).\
-        filter(MaterialRequest.status == "issued").all()
+    requests = db.query(MaterialRequest).filter(MaterialRequest.status == "issued").all()
 
     result = []
-    for request, material in issued_requests:
+    for req in requests:
+        material = db.query(Material).filter(Material.id == req.material_id).first()
+        if not material:
+            continue  # Пропускаем если материал вдруг удалён
+
         result.append({
-            "id": request.id,
-            "hvac_id": request.hvac_id,
+            "id": req.id,
+            "hvac_id": req.hvac_id,
             "material_name": material.name,
             "brand": material.brand,
             "model": material.model,
-            "order_id": request.order_id,
-            "issued_date": request.issued_date,
-            "quantity_issued": request.qty_issued,
-            "price_usd": request.price_usd or 0,
-            "price_mxn": request.price_mxn or 0,
+            "order_id": req.order_id,
+            "issued_date": req.issued_date,
+            "quantity_issued": req.qty_issued,
+            "price_usd": material.price_usd or 0,
+            "price_mxn": material.price_mxn or 0,
         })
+
     return result
 
 # 📦 Получить список использования материалов

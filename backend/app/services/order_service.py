@@ -1,7 +1,8 @@
+# hvac-platform/backend/app/services/order_service.py
+
 from sqlalchemy.orm import Session
 from datetime import datetime
 from app.models.order import Order, OrderStatus
-from app.models.user import User 
 
 def create_order(db: Session, client_id: int, data: dict):
     distance_cost = data.get("distance_cost")
@@ -51,19 +52,7 @@ def complete_order(db: Session, hvac_id: int, order_id: int):
     order.completed_at = datetime.utcnow()
     db.commit()
     return order
- # 🔄 Проверим, остались ли незавершённые заказы у этого HVAC
-    active_orders = db.query(Order).filter(
-        Order.hvac_id == hvac_id,
-        Order.status.in_([OrderStatus.accepted, OrderStatus.in_progress])
-    ).count()
 
-    if active_orders == 0:
-        hvac = db.query(User).filter(User.id == hvac_id).first()
-        if hvac:
-            hvac.status = 'free'
-            db.commit()
-
-    return order
 def get_orders_for_client(db: Session, client_id: int):
     orders = db.query(Order).filter(Order.client_id == client_id).all()
     return [
@@ -98,7 +87,7 @@ def upload_result_file(db: Session, hvac_id: int, order_id: int, url: str):
     db.commit()
     return order
 
-def upload_diagnostic_file(db: Session, hvac_id: int, order_id: int, url: str):
+def upload_d active_orders iagnostic_file(db: Session, hvac_id: int, order_id: int, url: str):
     order = db.query(Order).filter(Order.id == order_id, Order.hvac_id == hvac_id).first()
     if not order:
         return None

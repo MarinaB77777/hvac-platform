@@ -3,7 +3,6 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
 from app.models.order import Order, OrderStatus
-from app.models.user import User
 
 def create_order(db: Session, client_id: int, data: dict):
     distance_cost = data.get("distance_cost")
@@ -42,12 +41,6 @@ def accept_order(db: Session, hvac_id: int, order_id: int):
     order.hvac_id = hvac_id
     order.status = OrderStatus.accepted
     order.started_at = datetime.utcnow()
-
- # 🔄 Меняем статус HVAC на "busy"
-    hvac_user = db.query(User).filter(User.id == hvac_id).first()
-    if hvac_user:
-        hvac_user.status = "busy"
-
     db.commit()
     return order
 
@@ -55,23 +48,9 @@ def complete_order(db: Session, hvac_id: int, order_id: int):
     order = db.query(Order).filter(Order.id == order_id, Order.hvac_id == hvac_id).first()
     if not order or order.status != OrderStatus.in_progress:
         return None
-
     order.status = OrderStatus.completed
     order.completed_at = datetime.utcnow()
     db.commit()
-
-    # 🔄 Проверяем, остались ли активные заказы у этого HVAC
-    active_orders = db.query(Order).filter(
-        Order.hvac_id == hvac_id,
-        Order.status.in_([OrderStatus.new, OrderStatus.accepted, OrderStatus.in_progress])
-    ).count()
-
-    if active_orders == 0:
-        hvac_user = db.query(User).filter(User.id == hvac_id).first()
-        if hvac_user:
-            hvac_user.status = "free"
-            db.commit()
-
     return order
 
 def get_orders_for_client(db: Session, client_id: int):
@@ -130,22 +109,9 @@ def update_order_status(db: Session, hvac_id: int, order_id: int, status: str):
         return None
     order.status = status
     order.updated_at = datetime.utcnow()
-    
-   # 🔄 Если заказ завершён — проверить, есть ли ещё активные
-    if status == OrderStatus.completed:
-        active_orders = db.query(Order).filter(
-            Order.hvac_id == hvac_id,
-            Order.status.in_([OrderStatus.new, OrderStatus.accepted, OrderStatus.in_progress])
-        ).count()
-
-        if active_orders == 0:
-            hvac_user = db.query(User).filter(User.id == hvac_id).first()
-            if hvac_user:
-                hvac_user.status = "free"
-
-        db.commit()
-        return {
-            "id": order.id,
-            "status": order.status,
-            "updated_at": str(order.updated_at)
-        }
+    db.commit()
+    return {
+        "id": order.id,
+        "status": order.status,
+        "updated_at": str(order.updated_at)
+    }

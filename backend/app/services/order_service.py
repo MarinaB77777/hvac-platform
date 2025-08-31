@@ -108,7 +108,7 @@ def upload_result_file(db: Session, hvac_id: int, order_id: int, url: str):
     db.commit()
     return order
 
-def upload_d active_orders diagnostic_file(db: Session, hvac_id: int, order_id: int, url: str):
+def upload_diagnostic_file(db: Session, hvac_id: int, order_id: int, url: str):
     order = db.query(Order).filter(Order.id == order_id, Order.hvac_id == hvac_id).first()
     if not order:
         return None

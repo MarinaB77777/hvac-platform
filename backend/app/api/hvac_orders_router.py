@@ -3,15 +3,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db import get_db
-from app.models.user import User
 from app.models.order import Order
+from app.models.user import User
 from app.services.auth import get_current_user
 
 router = APIRouter(prefix="/hvac", tags=["hvac"])
 
-# 📍 Получить все заказы для HVAC
 @router.get("/orders")
-def get_all_orders_for_hvac(
+def get_orders_for_hvac(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -22,14 +21,22 @@ def get_all_orders_for_hvac(
 
     return [
         {
-            "id": order.id,
-            "address": order.address,
-            "lat": order.lat,
-            "lng": order.lng,
-            "description": order.description,
-            "status": order.status,
-            "datetime": order.datetime,
-            "hvac_id": order.hvac_id,
+            "id": o.id,
+            "created_at": o.created_at.isoformat() if o.created_at else None,
+            "status": o.status,
+            "client_id": o.client_id,
+            "hvac_id": o.hvac_id,
+            "address": o.address,
+            "lat": o.lat,
+            "lng": o.lng,
+            "description": o.description,
+            "diagnostic_cost": o.diagnostic_cost,
+            "distance_cost": o.distance_cost,
+            "parts_cost": o.parts_cost,
+            "repair_cost": o.repair_cost,
+            "currency": o.currency,
+            "payment_type": o.payment_type,
+            "rating": o.rating
         }
-        for order in orders
+        for o in orders
     ]

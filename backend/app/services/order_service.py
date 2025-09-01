@@ -83,7 +83,22 @@ def upload_result_file(db: Session, hvac_id: int, order_id: int, url: str):
     order = db.query(Order).filter(Order.id == order_id, Order.hvac_id == hvac_id).first()
     if not order:
         return None
+
     order.result_file_url = url
+    order.status = OrderStatus.completed
+    order.completed_at = datetime.utcnow()
+
+    # Проверка: остались ли ещё незавершённые заказы у этого HVAC
+    active_orders = db.query(Order).filter(
+        Order.hvac_id == hvac_id,
+        Order.status != OrderStatus.completed
+    ).count()
+
+    if active_orders == 0:
+        hvac = db.query(User).filter(User.id == hvac_id).first()
+        if hvac:
+            hvac.status = "free"
+
     db.commit()
     return order
 

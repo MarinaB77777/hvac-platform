@@ -1,5 +1,5 @@
 # hvac-platform/backend/app/services/order_service.py
-
+import json # 03.09.2025
 from sqlalchemy.orm import Session
 from datetime import datetime
 from app.models.order import Order, OrderStatus
@@ -109,6 +109,30 @@ def upload_diagnostic_file(db: Session, hvac_id: int, order_id: int, url: str):
     order.diagnostic_file_url = url
     db.commit()
     return order
+    
+# 03.03.2025
+def add_additional_diagnostic_file(db: Session, hvac_id: int, order_id: int, url: str):
+    order = db.query(Order).filter(Order.id == order_id, Order.hvac_id == hvac_id).first()
+    if not order:
+        return None
+
+    current = json.loads(order.additional_diagnostic_urls or "[]")
+    current.append(url)
+    order.additional_diagnostic_urls = json.dumps(current)
+    db.commit()
+    return order
+
+def add_additional_result_file(db: Session, hvac_id: int, order_id: int, url: str):
+    order = db.query(Order).filter(Order.id == order_id, Order.hvac_id == hvac_id).first()
+    if not order:
+        return None
+
+    current = json.loads(order.additional_result_urls or "[]")
+    current.append(url)
+    order.additional_result_urls = json.dumps(current)
+    db.commit()
+    return order
+# _______
 
 def rate_order(db: Session, client_id: int, order_id: int, rating: int):
     order = db.query(Order).filter(Order.id == order_id, Order.client_id == client_id).first()

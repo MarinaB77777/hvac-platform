@@ -27,9 +27,9 @@ class Order(Base):
     description = Column(String, nullable=True)               # Описание поломки
 
     diagnostic_url = Column(String, nullable=True)            # 📎 Файл диагностики
-    additional_diagnostic_urls = Column(Text, nullable=True)  # список ссылок на доп. диагностику 03.09.2025
+    diagnostic_files = Column(Text, nullable=True)            # список ссылок на доп. диагностику 03.09.2025
     result_file_url = Column(String, nullable=True)           # 📎 Файл результата работы
-    additional_result_urls = Column(Text, nullable=True)      # список ссылок на доп. результат 03.09.2025
+    result_files = Column(Text, nullable=True)                # список ссылок на доп. результат 03.09.2025
     client_agreed = Column(String, default="false")           # Согласие клиента
     rating = Column(Integer, nullable=True)
 
@@ -50,6 +50,7 @@ class Order(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
+
 
 
 

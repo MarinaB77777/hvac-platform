@@ -122,6 +122,10 @@ def add_additional_diagnostic_file(db: Session, hvac_id: int, order_id: int, url
     db.commit()
     return order
 
+@router.post("/orders/{order_id}/upload-multiple-diagnostics")
+def upload_multiple_diagnostics(order_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return upload_multiple_diagnostic_files(db, current_user.id, order_id, data.get("files"))
+
 def add_additional_result_file(db: Session, hvac_id: int, order_id: int, url: str):
     order = db.query(Order).filter(Order.id == order_id, Order.hvac_id == hvac_id).first()
     if not order:
@@ -132,6 +136,11 @@ def add_additional_result_file(db: Session, hvac_id: int, order_id: int, url: st
     order.additional_result_urls = json.dumps(current)
     db.commit()
     return order
+    
+@router.post("/orders/{order_id}/upload-multiple-results")
+def upload_multiple_results(order_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return upload_multiple_result_files(db, current_user.id, order_id, data.get("files"))
+    
 # _______
 
 def rate_order(db: Session, client_id: int, order_id: int, rating: int):

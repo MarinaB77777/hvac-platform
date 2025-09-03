@@ -36,7 +36,7 @@ def get_orders_for_hvac(
             "repair_cost": o.repair_cost,
             "currency": o.currency,
             "payment_type": o.payment_type,
-            "rating": o.rating
+            "rating": o.rating,
             # 🆕 Новые поля:
             "diagnostic_url": o.diagnostic_url,
             "result_file_url": o.result_file_url,

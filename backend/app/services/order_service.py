@@ -111,18 +111,31 @@ def upload_diagnostic_file(db: Session, hvac_id: int, order_id: int, url: str):
     return order
     
 # 03.03.2025
+# ✅ Добавить 1 файл в diagnostic_files[]
 def add_additional_diagnostic_file(db: Session, hvac_id: int, order_id: int, url: str):
     order = db.query(Order).filter(Order.id == order_id, Order.hvac_id == hvac_id).first()
     if not order:
         return None
 
-    current = json.loads(order.additional_diagnostic_urls or "[]")
+    current = json.loads(order.diagnostic_files or "[]")
     current.append(url)
-    order.additional_diagnostic_urls = json.dumps(current)
+    order.diagnostic_files = json.dumps(current)
     db.commit()
     return order
 
+# ✅ Добавить 1 файл в result_files[]
+def add_additional_result_file(db: Session, hvac_id: int, order_id: int, url: str):
+    order = db.query(Order).filter(Order.id == order_id, Order.hvac_id == hvac_id).first()
+    if not order:
+        return None
 
+    current = json.loads(order.result_files or "[]")
+    current.append(url)
+    order.result_files = json.dumps(current)
+    db.commit()
+    return order
+
+# ✅ Сохранить список файлов диагностики (если сразу несколько)
 def upload_multiple_diagnostic_files(db: Session, hvac_id: int, order_id: int, files: list):
     order = db.query(Order).filter(Order.id == order_id, Order.hvac_id == hvac_id).first()
     if not order:
@@ -131,17 +144,7 @@ def upload_multiple_diagnostic_files(db: Session, hvac_id: int, order_id: int, f
     db.commit()
     return order
 
-def add_additional_result_file(db: Session, hvac_id: int, order_id: int, url: str):
-    order = db.query(Order).filter(Order.id == order_id, Order.hvac_id == hvac_id).first()
-    if not order:
-        return None
-
-    current = json.loads(order.additional_result_urls or "[]")
-    current.append(url)
-    order.additional_result_urls = json.dumps(current)
-    db.commit()
-    return order
-    
+# ✅ Сохранить список итоговых файлов (если сразу несколько)
 def upload_multiple_result_files(db: Session, hvac_id: int, order_id: int, files: list):
     order = db.query(Order).filter(Order.id == order_id, Order.hvac_id == hvac_id).first()
     if not order:
@@ -149,7 +152,6 @@ def upload_multiple_result_files(db: Session, hvac_id: int, order_id: int, files
     order.result_files = json.dumps(files)
     db.commit()
     return order
-    
 # _______
 
 def rate_order(db: Session, client_id: int, order_id: int, rating: int):

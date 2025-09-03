@@ -143,6 +143,17 @@ def upload_result(order_id: int, data: dict, db: Session = Depends(get_db), curr
 def upload_diagnostic(order_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return upload_diagnostic_file(db, current_user.id, order_id, data.get("url"))
 
+# 03.09.2025
+@router.post("/orders/{order_id}/add-additional-diagnostic")
+def add_diagnostic_file(order_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return add_additional_diagnostic_file(db, current_user.id, order_id, data.get("url"))
+
+@router.post("/orders/{order_id}/add-additional-result")
+def add_result_file(order_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return add_additional_result_file(db, current_user.id, order_id, data.get("url"))
+
+# __________
+
 @router.patch("/orders/{order_id}/status")
 def patch_status(order_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     new_status = data.get("status")
@@ -193,6 +204,7 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+
 
 
 

@@ -165,6 +165,12 @@ with engine.connect() as conn:
         ALTER TABLE orders ADD COLUMN IF NOT EXISTS diagnostic_cost INTEGER;
     """))
     conn.execute(text("""
+    ALTER TABLE orders ADD COLUMN IF NOT EXISTS diagnostic_files TEXT;
+    """))
+    conn.execute(text("""
+    ALTER TABLE orders ADD COLUMN IF NOT EXISTS result_files TEXT;
+    """))
+    conn.execute(text("""
         ALTER TABLE orders ADD COLUMN IF NOT EXISTS distance_cost INTEGER;
     """))
     conn.execute(text("""

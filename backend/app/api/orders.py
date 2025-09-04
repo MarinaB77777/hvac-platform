@@ -17,7 +17,7 @@ from app.services.order_service import (
 from app.services.auth import get_current_user
 from app.models.user import User
 from app.models.order import Order, OrderStatus
-from app.services.user_service import (
+from app.services.order_service import (
     add_additional_diagnostic_file,
     add_additional_result_file
 )
@@ -208,6 +208,7 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+
 
 
 

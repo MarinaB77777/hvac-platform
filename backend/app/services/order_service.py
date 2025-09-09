@@ -56,9 +56,9 @@ def complete_order(db: Session, hvac_id: int, order_id: int):
     order.status = OrderStatus.completed
     order.completed_at = datetime.utcnow()
 
-   hvac = db.query(User).filter(User.id == hvac_id).first()
-   if hvac:
-       hvac.status = 'free'
+    hvac = db.query(User).filter(User.id == hvac_id).first()
+    if hvac:
+        hvac.status = 'free'
     db.commit()
     return order
 

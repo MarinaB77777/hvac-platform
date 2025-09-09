@@ -3,6 +3,7 @@ import json # 03.09.2025
 from sqlalchemy.orm import Session
 from datetime import datetime
 from app.models.order import Order, OrderStatus
+from app.models.user import User 
 
 def create_order(db: Session, client_id: int, data: dict):
     distance_cost = data.get("distance_cost")
@@ -41,6 +42,10 @@ def accept_order(db: Session, hvac_id: int, order_id: int):
     order.hvac_id = hvac_id
     order.status = OrderStatus.accepted
     order.started_at = datetime.utcnow()
+    # 👉 Обновим статус мастера
+    hvac = db.query(User).filter(User.id == hvac_id).first()
+    if hvac:
+        hvac.status = "busy"
     db.commit()
     return order
 

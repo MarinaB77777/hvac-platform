@@ -66,6 +66,7 @@ def complete_order(db: Session, hvac_id: int, order_id: int):
         hvac_user = db.query(User).filter(User.id == hvac_id).first()
         if hvac_user:
             hvac_user.status = 'free'
+            db.add(hvac_user)
     db.commit()
     return order
 
@@ -114,6 +115,7 @@ def upload_result_file(db: Session, hvac_id: int, order_id: int, url: str):
         hvac = db.query(User).filter(User.id == hvac_id).first()
         if hvac:
             hvac.status = "free"
+            db.add(hvac)
 
     db.commit()
     return order

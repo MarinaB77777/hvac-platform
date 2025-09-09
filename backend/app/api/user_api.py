@@ -51,6 +51,7 @@ def get_me(current_user: User = Depends(get_current_user)):
         "role": current_user.role,
         "location": current_user.location,
         "qualification": current_user.qualification,
+        "tarif": current_user.tarif,  # 👈 добавь эту строчку
         "rate": current_user.rate,
         "status": current_user.status,
         "address": current_user.address
@@ -80,6 +81,10 @@ def update_me(
     # 🔄 Тариф
     if user_update.rate is not None:
         current_user.rate = user_update.rate
+     
+     # Тариф за км
+    if user_update.tarif is not None:
+        current_user.tarif = user_update.tarif
 
     # 🔄 Статус
     if user_update.status is not None:

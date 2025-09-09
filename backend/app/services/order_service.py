@@ -56,17 +56,9 @@ def complete_order(db: Session, hvac_id: int, order_id: int):
     order.status = OrderStatus.completed
     order.completed_at = datetime.utcnow()
 
-    # 🧠 Проверка: есть ли ещё активные заказы
-    active_orders = db.query(Order).filter(
-        Order.hvac_id == hvac_id,
-        Order.status.in_([OrderStatus.accepted, OrderStatus.in_progress])
-    ).count()
-
-    if active_orders == 0:
-        hvac_user = db.query(User).filter(User.id == hvac_id).first()
-        if hvac_user:
-            hvac_user.status = 'free'
-            db.add(hvac_user)
+   hvac = db.query(User).filter(User.id == hvac_id).first()
+   if hvac:
+       hvac.status = 'free'
     db.commit()
     return order
 
@@ -105,18 +97,10 @@ def upload_result_file(db: Session, hvac_id: int, order_id: int, url: str):
     order.status = OrderStatus.completed
     order.completed_at = datetime.utcnow()
 
-    # Проверка: остались ли ещё незавершённые заказы у этого HVAC
-    active_orders = db.query(Order).filter(
-        Order.hvac_id == hvac_id,
-        Order.status != OrderStatus.completed
-    ).count()
-
-    if active_orders == 0:
-        hvac = db.query(User).filter(User.id == hvac_id).first()
-        if hvac:
-            hvac.status = "free"
-            db.add(hvac)
-
+    hvac = db.query(User).filter(User.id == hvac_id).first()
+    if hvac:
+        hvac.status = "free"
+           
     db.commit()
     return order
 

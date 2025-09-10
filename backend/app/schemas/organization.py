@@ -21,3 +21,11 @@ class OrganizationOut(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+class OrganizationUpdate(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+    model_config = {
+        "from_attributes": True
+    }

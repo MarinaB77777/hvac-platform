@@ -47,28 +47,43 @@ def delete_organization(org_id: int, db: Session = Depends(get_db)):
 
 @router.post("/organization/register")
 def register_organization(data: OrganizationCreate, db: Session = Depends(get_db)):
-    existing = db.query(Organization).filter_by(name=data.name).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Organization already exists")
+    from app.models.user import User
+    from app.security import get_password_hash
 
-    org = Organization(**data.dict())
+    # Проверка существующей организации
+    existing_org = db.query(Organization).filter_by(phone=data.phone).first()
+    if existing_org:
+        raise HTTPException(status_code=400, detail="Организация с таким телефоном уже существует")
+
+    # Создаём организацию
+    org = Organization(
+        name=data.name,
+        address=data.address,
+        email=data.email,
+        phone=data.phone
+    )
     db.add(org)
     db.commit()
     db.refresh(org)
+
+    # Создаём пользователя с ролью organization
+    hashed_password = get_password_hash(data.password)
+
+    user = User(
+        phone=data.phone,
+        password_hash=hashed_password,
+        role='organization',
+        organization_id=org.id
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
     return {"id": org.id, "name": org.name}
 
 @router.get("/organizations", response_model=list[OrganizationOut])
 def get_organizations(db: Session = Depends(get_db)):
     return db.query(Organization).all()
-
-@router.post("/organization/login")
-def login_organization(data: OrganizationLogin, db: Session = Depends(get_db)):
-    org = db.query(Organization).filter_by(name=data.name).first()
-    if not org:
-        raise HTTPException(status_code=404, detail="Organization not found")
-    
-    # Можно вернуть ID или весь объект
-    return {"id": org.id, "name": org.name}
 
 @router.get("/organizations/{org_id}", response_model=OrganizationOut)
 def get_organization(org_id: int, db: Session = Depends(get_db)):

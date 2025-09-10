@@ -61,6 +61,15 @@ def register_organization(data: OrganizationCreate, db: Session = Depends(get_db
 def get_organizations(db: Session = Depends(get_db)):
     return db.query(Organization).all()
 
+@router.post("/organization/login")
+def login_organization(data: OrganizationLogin, db: Session = Depends(get_db)):
+    org = db.query(Organization).filter_by(name=data.name).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    
+    # Можно вернуть ID или весь объект
+    return {"id": org.id, "name": org.name}
+
 @router.get("/organizations/{org_id}", response_model=OrganizationOut)
 def get_organization(org_id: int, db: Session = Depends(get_db)):
     org = db.query(Organization).filter(Organization.id == org_id).first()

@@ -32,6 +32,6 @@ class OrganizationUpdate(BaseModel):
 
 class OrganizationLogin(BaseModel):
     name: str
-     model_config = {
+    model_config = {
         "from_attributes": True
     }

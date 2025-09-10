@@ -11,7 +11,14 @@ def create_organization(data: OrganizationCreate, db: Session = Depends(get_db))
     existing = db.query(Organization).filter(Organization.name == data.name).first()
     if existing:
         raise HTTPException(status_code=400, detail="Такая организация уже существует")
-    org = Organization(name=data.name, description=data.description)
+    org = Organization(
+    name=data.name,
+    description=data.description,
+    website=data.website,
+    address=data.address,
+    phone=data.phone,
+    email=data.email
+)
     db.add(org)
     db.commit()
     db.refresh(org)

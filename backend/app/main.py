@@ -15,15 +15,18 @@ from app.api import (
     material_requests,
     materials,
     orders,
+    organization,
 )
 from app.models.material import Material
 from app.models.material_request import MaterialRequest
 from app.models import material_usage
+from app.models import organization
 from app.models.material_usage import MaterialUsage
 from app.api import material_usage
 from app.api import manager_api
 from app.api.manager_api import router as manager_issued_router
 from app.api.hvac_orders_router import router as hvac_orders_router
+from app.api.organization import router as organization_router
 
 
 app = FastAPI()
@@ -52,6 +55,7 @@ app.include_router(orders.router)
 app.include_router(material_usage.router)
 app.include_router(warehouse_recognition.router)
 app.include_router(hvac_orders_router)
+app.include_router(organization_router)
 
 
 # 🛠 Подключение к БД
@@ -192,6 +196,12 @@ with engine.connect() as conn:
     conn.execute(text("""
         ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_type VARCHAR;
     """))
+
+    conn.execute(text("""
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS organization_id INTEGER;
+    """))
+
+     
     conn.execute(text("""
     ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS issued_date DATE DEFAULT CURRENT_DATE;
     """))

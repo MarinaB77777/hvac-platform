@@ -30,6 +30,8 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         qualification=user_data.qualification or None,
         rate=user_data.rate if user_data.rate is not None else None,
         status=user_data.status or "active",
+        organization=user_data.organization or None
+        
     )
 
     db.add(new_user)
@@ -54,7 +56,8 @@ def get_me(current_user: User = Depends(get_current_user)):
         "tarif": current_user.tarif,  # 👈 добавь эту строчку
         "rate": current_user.rate,
         "status": current_user.status,
-        "address": current_user.address
+        "address": current_user.address,
+        "organization": current_user.organization
     }
 @router.patch("/users/me")
 def update_me(
@@ -94,6 +97,11 @@ def update_me(
     if user_update.address is not None:
         current_user.address = user_update.address
 
+    # 🔄 Адрес
+    if user_update.organization is not None:
+        current_user.organization = user_update.organization
+
+
     # ✅ Сохраняем
     db.add(current_user)
     db.commit()
@@ -109,7 +117,8 @@ def update_me(
         "qualification": current_user.qualification,
         "rate": current_user.rate,
         "status": current_user.status,
-        "address": current_user.address
+        "address": current_user.address,
+        "organization": current_user.organization
     }
 
 @router.post("/users/change-password")

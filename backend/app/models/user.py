@@ -7,6 +7,7 @@ class UserRole(str, Enum):
     hvac = "hvac"
     warehouse = "warehouse"
     manager = "manager"
+    organization = "organization"
 
 class User(Base):
     __tablename__ = "users"
@@ -24,3 +25,4 @@ class User(Base):
     status = Column(String, nullable=True)                        # активен / заблокирован / уволен и т.п.
     address = Column(String, nullable=True)
     tarif = Column(Float, default=20.0)  # процент от стоимости расходников
+    organization = Column(String, nullable=True)  # 👈 Новое поле

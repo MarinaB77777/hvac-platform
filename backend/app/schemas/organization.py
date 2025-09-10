@@ -3,10 +3,11 @@ from typing import Optional
 
 class OrganizationCreate(BaseModel):
     name: str
+    phone: str
+    password: str  # 🔐 теперь организация указывает пароль при регистрации
     description: Optional[str] = None
     website: Optional[str] = None
     address: Optional[str] = None
-    phone: Optional[str] = None
     email: Optional[str] = None
 
 class OrganizationOut(BaseModel):
@@ -31,7 +32,9 @@ class OrganizationUpdate(BaseModel):
     }
 
 class OrganizationLogin(BaseModel):
-    name: str
+    phone: str
+    password: str
+
     model_config = {
         "from_attributes": True
     }

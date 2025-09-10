@@ -45,6 +45,17 @@ def delete_organization(org_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"detail": "Организация удалена"}
 
+@router.post("/organization/register")
+def register_organization(data: OrganizationCreate, db: Session = Depends(get_db)):
+    existing = db.query(Organization).filter_by(name=data.name).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Organization already exists")
+
+    org = Organization(**data.dict())
+    db.add(org)
+    db.commit()
+    db.refresh(org)
+    return {"id": org.id, "name": org.name}
 
 @router.get("/organizations", response_model=list[OrganizationOut])
 def get_organizations(db: Session = Depends(get_db)):

@@ -1,5 +1,5 @@
 from enum import Enum
-from sqlalchemy import Column, Integer, String, Enum as SQLEnum, Boolean, DateTime, Float
+from sqlalchemy import Column, Integer, String, Enum as SQLEnum, Boolean, DateTime, Float, ForeignKey
 from app.db import Base
 
 class UserRole(str, Enum):

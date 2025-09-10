@@ -29,3 +29,9 @@ class OrganizationUpdate(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+class OrganizationLogin(BaseModel):
+    name: str
+     model_config = {
+        "from_attributes": True
+    }

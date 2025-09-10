@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.schemas.organization import OrganizationCreate, OrganizationOut, OrganizationUpdate
+from app.schemas.organization import OrganizationCreate, OrganizationOut, OrganizationUpdate, OrganizationLogin
 from app.models.organization import Organization
 from app.db import get_db
 

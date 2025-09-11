@@ -27,4 +27,6 @@ class User(Base):
     address = Column(String, nullable=True)
     tarif = Column(Float, default=20.0)  # процент от стоимости расходников
     organization_id = Column(Integer, ForeignKey("organization.id"), nullable=True)
+    organization = Column(String, nullable=True) 
+    website =  Column(String, nullable=True)
     organization = relationship("Organization", backref="users")

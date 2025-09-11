@@ -20,7 +20,7 @@ from app.api import (
 from app.models.material import Material
 from app.models.material_request import MaterialRequest
 from app.models import material_usage
-from app.models import organization
+from app.models.organization import Organization
 from app.models.material_usage import MaterialUsage
 from app.api import material_usage
 from app.api import manager_api

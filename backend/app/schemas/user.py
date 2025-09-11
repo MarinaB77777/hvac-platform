@@ -13,6 +13,7 @@ class UserCreate(BaseModel):
     tarif: Optional[int] = 20   # ← добавляем тут
     organization: Optional[str] = None  # 👈 добавить здесь
     website: Optional[str] = None
+    email: Optional[str] = None
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
@@ -28,6 +29,7 @@ class UserUpdate(BaseModel):
     tarif: Optional[int] = None   # ← и тут
     organization: Optional[str] = None  # 👈 добавить здесь
     website: Optional[str] = None
+    email: Optional[str] = None
 
     
 class ChangePasswordRequest(BaseModel):

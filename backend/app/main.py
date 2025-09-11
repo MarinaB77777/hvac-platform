@@ -215,8 +215,13 @@ with engine.connect() as conn:
     conn.execute(text("""
         ALTER TABLE users ADD COLUMN IF NOT EXISTS organization_id INTEGER;
     """))
-
-     
+    conn.execute(text("""
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS website INTEGER;
+    """))
+    conn.execute(text("""
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS organization INTEGER;
+    """))
+         
     conn.execute(text("""
     ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS issued_date DATE DEFAULT CURRENT_DATE;
     """))

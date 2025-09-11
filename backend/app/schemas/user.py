@@ -11,7 +11,8 @@ class UserCreate(BaseModel):
     rate: Optional[int] = None
     status: Optional[str] = None
     tarif: Optional[int] = 20   # ← добавляем тут
-    organization: Optional[str] = None  # 👈 добавить здесь
+    organization: Optional[str] = None  
+    address: Optional[str] = None
     website: Optional[str] = None
     email: Optional[str] = None
 
@@ -27,7 +28,8 @@ class UserUpdate(BaseModel):
     address: Optional[str] = None
     status: Optional[str] = None
     tarif: Optional[int] = None   # ← и тут
-    organization: Optional[str] = None  # 👈 добавить здесь
+    organization: Optional[str] = None 
+    address: Optional[str] = None
     website: Optional[str] = None
     email: Optional[str] = None
 

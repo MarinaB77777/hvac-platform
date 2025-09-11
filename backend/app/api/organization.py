@@ -48,8 +48,7 @@ def delete_organization(org_id: int, db: Session = Depends(get_db)):
 @router.post("/organization/register")
 def register_organization(data: OrganizationCreate, db: Session = Depends(get_db)):
     from app.models.user import User
-    from app.security import get_password_hash
-
+    
     # Проверка существующей организации
     existing_org = db.query(Organization).filter_by(phone=data.phone).first()
     if existing_org:

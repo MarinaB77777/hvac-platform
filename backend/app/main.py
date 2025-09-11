@@ -66,20 +66,6 @@ Base.metadata.create_all(bind=engine)
 
 with engine.connect() as conn:
     conn.execute(text("""
-        CREATE TABLE IF NOT EXISTS organization (
-            id SERIAL PRIMARY KEY,
-            name VARCHAR UNIQUE NOT NULL,
-            description TEXT,
-            website VARCHAR,
-            address VARCHAR,
-            phone VARCHAR,
-            email VARCHAR,
-            password VARCHAR
-        );
-    """))
-
-with engine.connect() as conn:
-    conn.execute(text("""
         ALTER TABLE users ADD COLUMN IF NOT EXISTS address VARCHAR;
     """))
     conn.execute(text("""
@@ -212,9 +198,6 @@ with engine.connect() as conn:
     """))
 
 
-    conn.execute(text("""
-        ALTER TABLE users ADD COLUMN IF NOT EXISTS organization_id INTEGER;
-    """))
     conn.execute(text("""
         ALTER TABLE users ADD COLUMN IF NOT EXISTS website INTEGER;
     """))

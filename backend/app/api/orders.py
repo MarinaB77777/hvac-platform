@@ -88,8 +88,8 @@ def active_orders_for_manager(db: Session = Depends(get_db), current_user: User 
                 "id": hvac_user.id,
                 "name": hvac_user.name,
                 "status": hvac_user.status,
-                "location": hvac_user.location
-                "organization": hvac_user.organization,
+                "location": hvac_user.location,
+                "organization": hvac_user.organization
 
             } if hvac_user else None
         })
@@ -211,6 +211,7 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+
 
 
 

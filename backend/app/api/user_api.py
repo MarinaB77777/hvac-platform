@@ -30,7 +30,10 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         qualification=user_data.qualification or None,
         rate=user_data.rate if user_data.rate is not None else None,
         status=user_data.status or "active",
-        organization=user_data.organization or None
+        organization=user_data.organization or None,
+        address=user_data.address or None,
+        website=user_data.website or None, 
+        email=user_data.email or None  
         
     )
 
@@ -57,7 +60,9 @@ def get_me(current_user: User = Depends(get_current_user)):
         "rate": current_user.rate,
         "status": current_user.status,
         "address": current_user.address,
-        "organization": current_user.organization
+        "organization": current_user.organization,
+        "website": current_user.website,
+        "email": current_user.email 
     }
 @router.patch("/users/me")
 def update_me(
@@ -85,7 +90,7 @@ def update_me(
     if user_update.rate is not None:
         current_user.rate = user_update.rate
      
-     # Тариф за км
+    # Тариф за км
     if user_update.tarif is not None:
         current_user.tarif = user_update.tarif
 
@@ -97,10 +102,17 @@ def update_me(
     if user_update.address is not None:
         current_user.address = user_update.address
 
-    # 🔄 Адрес
+    # 🔄 organization
     if user_update.organization is not None:
         current_user.organization = user_update.organization
 
+    # 🔄 email 
+    if user_update.email is not None:
+        current_user.email = user_update.email 
+     # 🔄 website  
+    if user_update.website is not None:
+        current_user.website = user_update.website  
+ 
 
     # ✅ Сохраняем
     db.add(current_user)
@@ -118,7 +130,9 @@ def update_me(
         "rate": current_user.rate,
         "status": current_user.status,
         "address": current_user.address,
-        "organization": current_user.organization
+        "organization": current_user.organization,
+        "website": current_user.website,
+        "email": current_user.email 
     }
 
 @router.post("/users/change-password")

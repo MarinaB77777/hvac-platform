@@ -73,7 +73,8 @@ with engine.connect() as conn:
             website VARCHAR,
             address VARCHAR,
             phone VARCHAR,
-            email VARCHAR
+            email VARCHAR,
+            password VARCHAR
         );
     """))
 

@@ -107,6 +107,8 @@ def update_hvac_user(user_id: int, user_data: UserUpdate, db: Session = Depends(
         "phone": updated.phone,
         "qualification": updated.qualification,
         "status": updated.status,
+        "tarif": updated.tarif,
+        "rate": updated.rate,
         "organization": updated.organization
     }
 

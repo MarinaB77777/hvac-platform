@@ -10,6 +10,8 @@ from app.schemas.user import UserUpdate
 from app.services.auth import get_current_user
 from app.models.material_request import MaterialRequest
 from app.models.material import Material
+import bcrypt
+from app.schemas.user import UserCreate
 
 
 # ✅ Один корректный роутер с префиксом
@@ -40,10 +42,56 @@ def get_employees(
             "rate": u.rate,
             "tarif": u.tarif,
             "status": u.status,
-            "location": u.location
+            "location": u.location,
+            "organization": u.organization
         }
         for u in employees
     ]
+
+@router.post("/employees")
+def create_employee(
+    user_data: UserCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)  # менеджер из токена
+):
+    if current_user.role != "manager":
+        raise HTTPException(status_code=403, detail="Only managers can add employees")
+
+    # проверка дубликата по телефону
+    existing_user = db.query(User).filter(User.phone == user_data.phone).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Пользователь с таким телефоном уже существует")
+
+    # хэшируем пароль
+    hashed_password = bcrypt.hashpw(user_data.password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+    # создаём HVAC сотрудника, наследуя организацию от менеджера
+    new_user = User(
+        name=user_data.name,
+        phone=user_data.phone,
+        hashed_password=hashed_password,
+        role="hvac",
+        qualification=user_data.qualification or 0,
+        tarif=user_data.tarif or 0,
+        status="free",
+        rate=0,
+        organization=current_user.organization  # 👈 наследуем у менеджера
+    )
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return {
+        "id": new_user.id,
+        "name": new_user.name,
+        "phone": new_user.phone,
+        "organization": new_user.organization,
+        "qualification": new_user.qualification,
+        "tarif": new_user.tarif,
+        "rate": new_user.rate,
+        "status": new_user.status
+    }
 
 # ✏️ Обновить HVAC-пользователя
 @router.put("/users/{user_id}")
@@ -58,7 +106,8 @@ def update_hvac_user(user_id: int, user_data: UserUpdate, db: Session = Depends(
         "name": updated.name,
         "phone": updated.phone,
         "qualification": updated.qualification,
-        "status": updated.status
+        "status": updated.status,
+        "organization": updated.organization
     }
 
 # ✅ Роутер истории выдачи со склада

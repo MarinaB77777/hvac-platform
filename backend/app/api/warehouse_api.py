@@ -32,6 +32,7 @@ def get_warehouse_profile(
         "name": current_user.name,
         "phone": current_user.phone,
         "organization": current_user.organization,
+        "role": current_user.role,
        
     }
 

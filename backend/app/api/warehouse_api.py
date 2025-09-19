@@ -19,6 +19,23 @@ def check_warehouse(user: User):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
 
+
+# 📌 ПРОФИЛЬ СКЛАДСКОГО РАБОТНИКА
+@router.get("/profile")
+def get_warehouse_profile(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    check_warehouse(current_user)
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "phone": current_user.phone,
+        "organization": current_user.organization,
+       
+    }
+
+
 @router.get("/materials", response_model=List[MaterialOut])
 def get_all_materials(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     check_warehouse(current_user)

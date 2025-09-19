@@ -8,8 +8,7 @@ class UserRole(str, Enum):
     hvac = "hvac"
     warehouse = "warehouse"
     manager = "manager"
-    organization = "organization"
-
+    
 class User(Base):
     __tablename__ = "users"
 

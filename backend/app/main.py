@@ -24,6 +24,7 @@ from app.api import material_usage
 from app.api import manager_api
 from app.api.manager_api import router as manager_issued_router
 from app.api.hvac_orders_router import router as hvac_orders_router
+from app.api import ai_api
 
 
 
@@ -53,6 +54,7 @@ app.include_router(orders.router)
 app.include_router(material_usage.router)
 app.include_router(warehouse_recognition.router)
 app.include_router(hvac_orders_router)
+app.include_router(ai_api.router)
 
 
 

@@ -159,6 +159,29 @@ def add_diagnostic_file(order_id: int, data: dict, db: Session = Depends(get_db)
 def add_result_file(order_id: int, data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return add_additional_result_file(db, current_user.id, order_id, data.get("url"))
 
+# 09.12.2025
+@router.post("/orders/{order_id}/decline")
+def decline_order(order_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    # Только HVAC может отказаться
+    if current_user.role != "hvac":
+        raise HTTPException(status_code=403, detail="Only HVAC workers can decline orders.")
+
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    # Заказ должен быть принят HVAC
+    if order.hvac_id != current_user.id:
+        raise HTTPException(status_code=400, detail="This order is not assigned to you")
+
+    # Обновляем статус
+    order.status = OrderStatus.declined
+    order.hvac_id = None     # освободить заказ
+
+    db.commit()
+    db.refresh(order)
+
+    return {"detail": "Order declined", "order": order}
 # __________
 
 @router.patch("/orders/{order_id}/status")
@@ -211,6 +234,7 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+
 
 
 

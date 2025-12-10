@@ -115,9 +115,6 @@ with engine.connect() as conn:
         ALTER TABLE materials ADD COLUMN IF NOT EXISTS qty_issued INTEGER;
     """))
     conn.execute(text("""
-        ALTER TABLE materials ADD COLUMN IF NOT EXISTS organization INTEGER;
-    """))
-    conn.execute(text("""
         ALTER TABLE materials ADD COLUMN IF NOT EXISTS issued_to_hvac INTEGER;
     """))
     conn.execute(text("""
@@ -199,13 +196,13 @@ with engine.connect() as conn:
     conn.execute(text("""
         ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_type VARCHAR;
     """))
-
+with engine.connect() as conn:
+    conn.execute(text("""
+        ALTER TABLE materials ADD COLUMN IF NOT EXISTS organization VARCHAR;
+    """))
 
     conn.execute(text("""
         ALTER TABLE users ADD COLUMN IF NOT EXISTS website INTEGER;
-    """))
-    conn.execute(text("""
-        ALTER TABLE users ADD COLUMN IF NOT EXISTS organization INTEGER;
     """))
     conn.execute(text("""
         ALTER TABLE users ADD COLUMN IF NOT EXISTS email INTEGER;

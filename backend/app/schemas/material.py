@@ -15,6 +15,7 @@ class MaterialOut(BaseModel):
     price_mxn: Optional[float]
     stock: int
     photo_url: Optional[str]
+    organization: Optional[str] 
     arrival_date: Optional[date]
     issued_date: Optional[date]
     issued_to_hvac: Optional[int]
@@ -35,6 +36,7 @@ class MaterialCreate(BaseModel):
     price_mxn: Optional[float]
     stock: Optional[int]
     photo_url: Optional[str]
+    organization: Optional[str] 
     arrival_date: Optional[date]
     qty_issued: Optional[int] = 0
     status: Optional[str] = "pending"

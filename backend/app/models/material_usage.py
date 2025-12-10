@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db import Base
@@ -21,7 +21,7 @@ class MaterialUsage(Base):
     specs = Column(String, nullable=True)
     price_usd = Column(Integer, nullable=True)
     price_mxn = Column(Integer, nullable=True)
-    organization = Column(String, nullable=True)
+    organization = Column(Text, nullable=True)
 
     hvac = relationship("User", backref="used_materials")
     material = relationship("Material", backref="usages")

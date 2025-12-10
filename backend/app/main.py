@@ -115,7 +115,7 @@ with engine.connect() as conn:
         ALTER TABLE materials ADD COLUMN IF NOT EXISTS qty_issued INTEGER;
     """))
     conn.execute(text("""
-        ALTER TABLE materials ADD COLUMN IF NOT EXISTS organization TEXT;
+        ALTER TABLE materials ADD COLUMN IF NOT EXISTS organization INTEGER;
     """))
     conn.execute(text("""
         ALTER TABLE materials ADD COLUMN IF NOT EXISTS issued_to_hvac INTEGER;

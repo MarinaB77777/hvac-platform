@@ -6,6 +6,8 @@ from typing import List, Optional
 from app.db import get_db
 from app.models.material import Material
 from app.schemas.material import MaterialOut, MaterialCreate
+from app.services.auth import get_current_user
+from app.models.user import User
 
 router = APIRouter(prefix="/materials", tags=["materials"])
 
@@ -13,9 +15,14 @@ router = APIRouter(prefix="/materials", tags=["materials"])
 @router.post("/", response_model=MaterialOut, status_code=201)
 def create_material(
     material: MaterialCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    db_material = Material(**material.model_dump())
+    db_material = Material(
+        **material.model_dump(),
+        organization=current_user.organization  # 🌟 авто-установка организации склада
+    )
+
     db.add(db_material)
     db.commit()
     db.refresh(db_material)

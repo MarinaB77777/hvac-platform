@@ -10,6 +10,7 @@ class MaterialBaseInfo(BaseModel):
     name: Optional[str]
     model: Optional[str]
     brand: Optional[str]
+    organization: Optional[str] 
 
 class MaterialRequestCreate(BaseModel):
     material_id: int
@@ -31,6 +32,7 @@ class MaterialRequestOut(BaseModel):
     specs: Optional[str] = None
     price_usd: Optional[float] = None
     price_mxn: Optional[float] = None
+    organization: Optional[str] = None
 
     class Config:
         from_attributes = True

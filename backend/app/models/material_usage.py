@@ -12,6 +12,7 @@ class MaterialUsage(Base):
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
     quantity_used = Column(Integer, nullable=False)
     used_date = Column(DateTime, default=datetime.utcnow)
+    
 
     # Копии данных из материала на момент использования
     name = Column(String, nullable=True)
@@ -20,6 +21,7 @@ class MaterialUsage(Base):
     specs = Column(String, nullable=True)
     price_usd = Column(Integer, nullable=True)
     price_mxn = Column(Integer, nullable=True)
+    organization = Column(String, nullable=True)
 
     hvac = relationship("User", backref="used_materials")
     material = relationship("Material", backref="usages")

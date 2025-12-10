@@ -24,5 +24,6 @@ class MaterialUsage(Base):
     hvac = relationship("User", backref="used_materials")
     material = relationship("Material", backref="usages")
     order = relationship("Order", backref="material_usages")
+    organization = Column(Text, nullable=True) 
 
 

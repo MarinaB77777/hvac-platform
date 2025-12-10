@@ -15,6 +15,6 @@ class MaterialRequest(Base):
     issued_date = Column(DateTime, default=datetime.utcnow)
     price_usd = Column(Integer, nullable=True)
     price_mxn = Column(Integer, nullable=True)
-    organization = Column(String, nullable=True)
+    organization = Column(Text, nullable=True)
 
     material = relationship("Material", backref="requests")  # для joined view

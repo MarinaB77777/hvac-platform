@@ -15,7 +15,7 @@ class MaterialUsageBase(BaseModel):
     specs: Optional[str] = None
     price_usd: Optional[float] = None
     price_mxn: Optional[float] = None
-    organization: Optional[str] = None
+    organization: Optional[int] = None
 
 class MaterialUsageCreate(MaterialUsageBase):
     # ничего не добавляем, фронту не нужно слать дату

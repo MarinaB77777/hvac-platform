@@ -15,7 +15,7 @@ class MaterialOut(BaseModel):
     price_mxn: Optional[float]
     stock: int
     photo_url: Optional[str]
-    organization: Optional[str] 
+    organization: Optional[int] 
     arrival_date: Optional[date]
     issued_date: Optional[date]
     issued_to_hvac: Optional[int]

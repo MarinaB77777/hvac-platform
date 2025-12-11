@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db import Base
@@ -12,7 +12,6 @@ class MaterialUsage(Base):
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
     quantity_used = Column(Integer, nullable=False)
     used_date = Column(DateTime, default=datetime.utcnow)
-    
 
     # Копии данных из материала на момент использования
     name = Column(String, nullable=True)
@@ -21,11 +20,7 @@ class MaterialUsage(Base):
     specs = Column(String, nullable=True)
     price_usd = Column(Integer, nullable=True)
     price_mxn = Column(Integer, nullable=True)
-    organization = Column(Integer, nullable=True)
 
     hvac = relationship("User", backref="used_materials")
     material = relationship("Material", backref="usages")
     order = relationship("Order", backref="material_usages")
-    
-
-

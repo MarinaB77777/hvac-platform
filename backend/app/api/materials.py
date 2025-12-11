@@ -34,7 +34,6 @@ def get_all_materials(
         query = query.filter(Material.name.ilike(f"%{name}%"))
     if sort_by == "stock":
         query = query.order_by(Material.stock.desc())
-    elif sort_by == "price":
-        query = query.order_by(Material.price_usd.asc())
-
+    if organization:
+        query = query.filter(Material.organization == organization)
     return query.all()

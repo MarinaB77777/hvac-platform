@@ -1,5 +1,4 @@
 # backend/app/models/material.py
-from sqlalchemy import Column, Integer, String, Float, Date, Text
 from app.db import Base
 
 class Material(Base):
@@ -19,4 +18,3 @@ class Material(Base):
     issued_to_hvac = Column(Integer, nullable=True)
     qty_issued = Column(Integer, nullable=True)
     status = Column(String, nullable=True)
-    organization = Column(Integer, nullable=True)

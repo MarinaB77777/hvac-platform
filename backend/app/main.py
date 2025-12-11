@@ -159,7 +159,9 @@ with engine.connect() as conn:
     conn.execute(text("""
         ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS issued_date DATETIME;
     """))
-    
+    conn.execute(text("""
+        ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS organization VARCHAR;
+    """))
     conn.execute(text("""
         ALTER TABLE orders ADD COLUMN IF NOT EXISTS result_file_url VARCHAR;
     """))

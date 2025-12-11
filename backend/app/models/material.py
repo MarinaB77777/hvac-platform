@@ -1,4 +1,5 @@
 # backend/app/models/material.py
+from sqlalchemy import Column, Integer, String, Float, Date
 from app.db import Base
 
 class Material(Base):

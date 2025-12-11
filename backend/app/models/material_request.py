@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Date, DateTime, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, Date, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime 
 from app.db import Base
@@ -15,6 +15,6 @@ class MaterialRequest(Base):
     issued_date = Column(DateTime, default=datetime.utcnow)
     price_usd = Column(Integer, nullable=True)
     price_mxn = Column(Integer, nullable=True)
-    organization = Column(Integer, nullable=True)
+
 
     material = relationship("Material", backref="requests")  # для joined view

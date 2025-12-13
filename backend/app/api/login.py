@@ -21,6 +21,10 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         data={"sub": str(user.id)},
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
+    roles = [user.role]
+
+    if user.is_demo:
+        roles = ["client", "hvac", "warehouse", "manager"]
     return {
         "access_token": access_token,
         "token_type": "bearer",
@@ -28,8 +32,12 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             "id": user.id,
             "name": user.name,
             "phone": user.phone,
-            "role": user.role,
-            "organization": user.organization
+            "role": user.role,          # базовая роль
+            "roles": roles,             # 👈 ВАЖНО
+            "organization": user.organization,
+            "is_demo": user.is_demo   # 👈 очень рекомендую добавить
         }
     }
+
+
     

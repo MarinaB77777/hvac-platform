@@ -23,8 +23,9 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     )
     roles = [user.role]
 
-    if user.is_demo:
+    if getattr(user, "is_demo", False):
         roles = ["client", "hvac", "warehouse", "manager"]
+    
     return {
         "access_token": access_token,
         "token_type": "bearer",

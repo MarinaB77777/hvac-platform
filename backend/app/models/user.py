@@ -28,5 +28,4 @@ class User(Base):
     organization = Column(Text, nullable=True) 
     website =  Column(Text, nullable=True)
     email = Column(Text, nullable=True)
-    is_demo = Column(Boolean, default=False)
     

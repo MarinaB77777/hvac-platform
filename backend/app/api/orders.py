@@ -55,6 +55,54 @@ def accept(order_id: int, db: Session = Depends(get_db), current_user: User = De
 def complete(order_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return complete_order(db, current_user.id, order_id)
 
+# 15.09.2025
+
+@router.get("/employees/public")
+def get_public_employees(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    # Разрешаем client + manager (на будущее)
+    if user.role not in ["client", "manager"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    employees = (
+        db.query(User)
+        .filter(
+            User.role == "hvac",
+            User.location.isnot(None)
+        )
+        .all()
+    )
+
+    result = []
+
+    for hvac in employees:
+        ratings = (
+            db.query(Order.rating)
+            .filter(
+                Order.hvac_id == hvac.id,
+                Order.rating.isnot(None)
+            )
+            .all()
+        )
+
+        avg_rating = (
+            sum(r[0] for r in ratings) / len(ratings)
+            if ratings else None
+        )
+
+        result.append({
+            "id": hvac.id,
+            "name": hvac.name,
+            "location": hvac.location,
+            "status": hvac.status,
+            "tarif": hvac.tarif,
+            "avgRating": avg_rating,
+        })
+
+    return result
+
 @router.get("/orders/me")
 def mine(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return get_orders_for_hvac(db, current_user.id)
@@ -234,6 +282,7 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+
 
 
 

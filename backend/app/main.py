@@ -15,6 +15,7 @@ from app.api import (
     material_requests,
     materials,
     orders,
+    scan,
     )
 from app.models.material import Material
 from app.models.material_request import MaterialRequest
@@ -55,6 +56,7 @@ app.include_router(material_usage.router)
 app.include_router(warehouse_recognition.router)
 app.include_router(hvac_orders_router)
 app.include_router(ai_chat.router)
+app.include_router(scan.router)
 
 
 

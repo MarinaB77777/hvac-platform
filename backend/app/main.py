@@ -206,7 +206,7 @@ with engine.connect() as conn:
 
 
     conn.execute(text("""
-        ALTER TABLE users ADD COLUMN IF NOT EXISTS website INTEGER;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS website TEXT;
     """))
     conn.execute(text("""
         ALTER TABLE users ADD COLUMN IF NOT EXISTS organization INTEGER;

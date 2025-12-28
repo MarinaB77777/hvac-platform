@@ -230,6 +230,30 @@ with engine.connect() as conn:
     """))
     conn.commit()
 
+with engine.connect() as conn:
+    # 👇 ПРИНУДИТЕЛЬНО МЕНЯЕМ ТИПЫ
+    try:
+        conn.execute(text("""
+            ALTER TABLE users
+            ALTER COLUMN organization TYPE TEXT
+            USING organization::text;
+        """))
+        print("✅ users.organization -> TEXT")
+    except Exception as e:
+        print("ℹ️ organization already TEXT:", e)
+
+    try:
+        conn.execute(text("""
+            ALTER TABLE users
+            ALTER COLUMN website TYPE TEXT
+            USING website::text;
+        """))
+        print("✅ users.website -> TEXT")
+    except Exception as e:
+        print("ℹ️ website already TEXT:", e)
+
+    conn.commit()
+
 # ✅ Вставка тестового материала (без material_type)
 with engine.connect() as conn:
     result = conn.execute(text("SELECT COUNT(*) FROM materials"))

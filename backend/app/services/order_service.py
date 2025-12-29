@@ -21,7 +21,7 @@ def create_order(db: Session, client_id: int, data: dict):
         currency=data.get("currency"),
         payment_type=data.get("payment_type"),
         # ✅ НИЧЕГО ЛИШНЕГО
-        client_datetime=client_datetime,
+        client_datetime = data.get("client_datetime"),
         status=OrderStatus.new,
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow()

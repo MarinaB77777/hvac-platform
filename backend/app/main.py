@@ -223,7 +223,8 @@ with engine.connect() as conn:
 
 with engine.connect() as conn:
     conn.execute(text("""
-        ALTER TABLE orders ADD COLUMN IF NOT EXISTS datetime TIMESTAMP;
+        ALTER TABLE orders
+        ADD COLUMN IF NOT EXISTS client_datetime TIMESTAMP;
     """))
     conn.commit()
 

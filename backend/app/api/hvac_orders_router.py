@@ -23,7 +23,7 @@ def get_orders_for_hvac(
         {
             "id": o.id,
             "created_at": o.created_at.isoformat() if o.created_at else None,
-            "datetime": o.client_datetime.isoformat() if o.client_datetime else None,
+            "client_datetime": o.client_datetime.isoformat() if o.client_datetime else None,
             "status": o.status,
             "client_id": o.client_id,
             "hvac_id": o.hvac_id,

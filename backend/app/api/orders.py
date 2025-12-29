@@ -51,7 +51,7 @@ def get(order_id: int, db: Session = Depends(get_db), current_user: User = Depen
     "completed_at": order.completed_at.isoformat() if order.completed_at else None,
 
     # 🔑 ВОТ ОНО
-    "datetime": order.client_datetime.isoformat() if order.client_datetime else None,
+    "client_datetime": order.client_datetime.isoformat() if order.client_datetime else None,
 
     "diagnostic_cost": order.diagnostic_cost,
     "distance_cost": order.distance_cost,
@@ -263,6 +263,7 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+
 
 
 

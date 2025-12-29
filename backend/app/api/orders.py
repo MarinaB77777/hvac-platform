@@ -35,37 +35,8 @@ def get(order_id: int, db: Session = Depends(get_db), current_user: User = Depen
     order = get_order_by_id(db, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
-    return {
-    "id": order.id,
-    "client_id": order.client_id,      # ✅ ВЕРНУТЬ
-    "hvac_id": order.hvac_id,           # ✅ ВЕРНУТЬ
-        
-    "status": order.status,
-    "address": order.address,
-    "description": order.description,
-    "lat": order.lat,
-    "lng": order.lng,
-
-    "created_at": order.created_at.isoformat() if order.created_at else None,
-    "started_at": order.started_at.isoformat() if order.started_at else None,
-    "completed_at": order.completed_at.isoformat() if order.completed_at else None,
-
-    # 🔑 ВОТ ОНО
-    "client_datetime": order.client_datetime.isoformat() if order.client_datetime else None,
-
-    "diagnostic_cost": order.diagnostic_cost,
-    "distance_cost": order.distance_cost,
-    "parts_cost": order.parts_cost,
-    "repair_cost": order.repair_cost,
-    "agreed_total_mxn": order.agreed_total_mxn,
-    "currency": order.currency,
-    "payment_type": order.payment_type,
-    "diagnostic_url": order.diagnostic_url,
-    "diagnostic_files": order.diagnostic_files,
-    "result_file_url": order.result_file_url,
-    "result_files": order.result_files,
-}
-
+    return order
+    
 @router.get("/orders/client")
 def get_orders_for_client(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if current_user.role != "client":
@@ -263,6 +234,7 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+
 
 
 

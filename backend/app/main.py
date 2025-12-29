@@ -166,7 +166,7 @@ with engine.connect() as conn:
     conn.execute(text("""
         ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS issued_date DATETIME;
     """))
-
+    
     conn.execute(text("""
         ALTER TABLE orders ADD COLUMN IF NOT EXISTS result_file_url VARCHAR;
     """))
@@ -218,6 +218,12 @@ with engine.connect() as conn:
 
     conn.execute(text("""
     ALTER TABLE material_requests ADD COLUMN IF NOT EXISTS issued_date DATE DEFAULT CURRENT_DATE;
+    """))
+    conn.commit()
+
+with engine.connect() as conn:
+    conn.execute(text("""
+        ALTER TABLE orders ADD COLUMN IF NOT EXISTS datetime TIMESTAMP;
     """))
     conn.commit()
 

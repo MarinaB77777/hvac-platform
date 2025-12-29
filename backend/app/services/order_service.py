@@ -7,7 +7,7 @@ from app.models.user import User
 
 def create_order(db: Session, client_id: int, data: dict):
     distance_cost = data.get("distance_cost")
-    diagnostic_cost = data.get("diagnostic_cost", 100)  # фиксированная цена
+    diagnostic_cost = data.get("diagnostic_cost", 200)  # фиксированная цена
 
     order = Order(
         client_id=client_id,

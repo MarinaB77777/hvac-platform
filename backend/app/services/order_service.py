@@ -7,7 +7,7 @@ from app.models.user import User
 
 def create_order(db: Session, client_id: int, data: dict):
     distance_cost = data.get("distance_cost")
-    diagnostic_cost = data.get("diagnostic_cost", 500)  # фиксированная цена
+    diagnostic_cost = data.get("diagnostic_cost", 100)  # фиксированная цена
 
     order = Order(
         client_id=client_id,
@@ -20,7 +20,11 @@ def create_order(db: Session, client_id: int, data: dict):
         distance_cost=distance_cost,
         currency=data.get("currency"),
         payment_type=data.get("payment_type"),
-        datetime=data.get("datetime"),
+        # ✅ НИЧЕГО ЛИШНЕГО
+        client_datetime=(
+            datetime.fromisoformat(data["client_datetime"].replace("Z", "+00:00"))
+            if data.get("client_datetime") else None
+        ),
         status=OrderStatus.new,
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow()

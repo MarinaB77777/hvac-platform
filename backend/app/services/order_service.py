@@ -20,6 +20,7 @@ def create_order(db: Session, client_id: int, data: dict):
         distance_cost=distance_cost,
         currency=data.get("currency"),
         payment_type=data.get("payment_type"),
+        datetime=data.get("datetime"),
         status=OrderStatus.new,
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow()

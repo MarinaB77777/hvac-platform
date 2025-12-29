@@ -37,6 +37,9 @@ def get(order_id: int, db: Session = Depends(get_db), current_user: User = Depen
         raise HTTPException(status_code=404, detail="Order not found")
     return {
     "id": order.id,
+    "client_id": order.client_id,      # ✅ ВЕРНУТЬ
+    "hvac_id": order.hvac_id,           # ✅ ВЕРНУТЬ
+        
     "status": order.status,
     "address": order.address,
     "description": order.description,
@@ -260,6 +263,7 @@ def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(
         Order.status == OrderStatus.new,
         Order.hvac_id == current_user.id
     ).all()
+
 
 
 

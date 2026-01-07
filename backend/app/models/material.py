@@ -19,3 +19,4 @@ class Material(Base):
     issued_to_hvac = Column(Integer, nullable=True)
     qty_issued = Column(Integer, nullable=True)
     status = Column(String, nullable=True)
+    organization = Column(String, nullable=True)

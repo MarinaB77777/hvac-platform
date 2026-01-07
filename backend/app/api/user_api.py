@@ -146,21 +146,32 @@ def delete_my_account(
 ):
     """
     Account deletion via anonymization.
-    Orders and relations remain untouched.
+    Orders and relations remain intact.
     """
 
-    current_user.name = None
-    current_user.phone = None
-    current_user.email = None
+    # 🔒 Защита от повторного удаления
+    if current_user.status == "deleted":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Account already deleted",
+        )
+
+    user_id = current_user.id
+
+    # 🧹 Обезличивание (ТОЛЬКО допустимые значения)
+    current_user.name = "Deleted user"
+    current_user.phone = f"deleted_{user_id}"
+    current_user.hashed_password = "DELETED"
+    current_user.status = "deleted"
+
+    # nullable поля — чистим
+    current_user.organization = None
     current_user.website = None
+    current_user.email = None
 
-    # пароль — особый случай, его просто затираем
-    current_user.hashed_password = None
-
-    # служебные поля можно оставить или тоже пометить
-    current_user.status = None
-
+    db.add(current_user)
     db.commit()
+
     return
  
 

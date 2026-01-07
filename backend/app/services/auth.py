@@ -43,20 +43,38 @@ def authenticate_user(db: Session, phone: str, password: str):
         return None
     return user
 
-
 # 👤 Получение текущего пользователя из токена
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
     print("🔍 Получен токен:", token)
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = int(payload.get("sub"))
         print("✅ Распознан user_id:", user_id)
+
         user = db.query(User).filter(User.id == user_id).first()
-        if user:
-            print("✅ Пользователь найден:", user.name)
-        else:
+
+        if not user:
             print("❌ Пользователь не найден")
+            raise HTTPException(status_code=401, detail="User not found")
+
+        # 🔒 АККАУНТ УДАЛЁН → ДОСТУП ЗАПРЕЩЁН
+        if user.phone is None or user.hashed_password is None:
+            print("❌ Аккаунт удалён")
+            raise HTTPException(status_code=401, detail="Account deleted")
+
+        print("✅ Пользователь найден:", user.name)
         return user
+
     except JWTError as e:
         print("❌ JWT ошибка:", e)
         raise HTTPException(status_code=401, detail="Token invalid")
+
+
+
+
+
+
+

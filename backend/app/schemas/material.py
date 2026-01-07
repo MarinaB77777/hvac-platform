@@ -21,6 +21,7 @@ class MaterialOut(BaseModel):
     issued_to_hvac: Optional[int]
     qty_issued: Optional[int]
     status: Optional[str]
+    organization: Optional[str]
 
     model_config = {
         "from_attributes": True

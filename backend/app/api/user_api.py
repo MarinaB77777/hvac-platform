@@ -149,17 +149,16 @@ def delete_my_account(
     Orders and relations remain untouched.
     """
 
-    current_user.name = "deleted"
-    current_user.phone = "deleted"
-    current_user.email = "deleted"
-    current_user.website = "deleted"
+    current_user.name = None
+    current_user.phone = None
+    current_user.email = None
+    current_user.website = None
 
     # пароль — особый случай, его просто затираем
-    current_user.hashed_password = "deleted"
+    current_user.hashed_password = None
 
     # служебные поля можно оставить или тоже пометить
-    current_user.organization = "deleted"
-    current_user.status = "deleted"
+    current_user.status = None
 
     db.commit()
     return

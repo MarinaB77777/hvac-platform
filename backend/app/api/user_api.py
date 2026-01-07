@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from datetime import datetime
+from fastapi import status
 from passlib.hash import bcrypt
  
 
@@ -143,33 +144,15 @@ def delete_my_account(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Soft delete user account.
-    Orders, payments and relations remain untouched.
-    """
-
-    # 🔒 Защита от повторного удаления
-    if not current_user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Account already deleted",
-        )
-
-    # 🧹 Обезличивание
     current_user.name = None
     current_user.phone = None
     current_user.hashed_password = None
-
-    # ❌ Деактивация
-    current_user.is_active = False
-
-    # 🕒 Метка удаления (если поле есть)
-    if hasattr(current_user, "deleted_at"):
-        current_user.deleted_at = datetime.utcnow()
+    current_user.email = None
+    current_user.website = None
 
     db.commit()
-
     return
+
 
 @router.post("/users/change-password")
 def change_password(

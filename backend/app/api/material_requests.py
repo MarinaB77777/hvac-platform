@@ -21,29 +21,35 @@ def create_material_request(
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "hvac":
-        raise HTTPException(status_code=403, detail="Only HVAC can create requests")
+        raise HTTPException(
+            status_code=403,
+            detail="Only HVAC can create requests",
+        )
 
-   material = db.query(Material).filter(Material.id == request_in.material_id).first()
-if not material:
-    raise HTTPException(status_code=404, detail="Material not found")
-
-# ✅ КЛЮЧЕВАЯ ПРОВЕРКА ОРГАНИЗАЦИИ
-if material.organization != current_user.organization:
-    raise HTTPException(
-        status_code=403,
-        detail="Material belongs to another organization"
+    material = (
+        db.query(Material)
+        .filter(Material.id == request_in.material_id)
+        .first()
     )
-    
+
+    if not material:
+        raise HTTPException(
+            status_code=404,
+            detail="Material not found",
+        )
+
     request = MaterialRequest(
         material_id=request_in.material_id,
         order_id=request_in.order_id,
         hvac_id=current_user.id,
         quantity=request_in.quantity,
-        status="pending"
+        status="pending",
     )
+
     db.add(request)
     db.commit()
     db.refresh(request)
+
     return request
 
 

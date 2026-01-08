@@ -32,15 +32,23 @@ def create_material(
     db.refresh(db_material)
     return db_material
 
+from app.services.auth import get_current_user
+
 @router.get("/", response_model=List[MaterialOut])
 def get_all_materials(
     db: Session = Depends(get_db),
-    brand: Optional[str] = Query(None, description="Фильтр по бренду"),
-    name: Optional[str] = Query(None, description="Поиск по названию (включает подстроку)"),
-    sort_by: Optional[str] = Query(None, description="Сортировка: 'stock' или 'price'")
-
+    current_user = Depends(get_current_user),
+    brand: Optional[str] = Query(None),
+    name: Optional[str] = Query(None),
+    sort_by: Optional[str] = Query(None),
 ):
     query = db.query(Material)
+
+    # 🔐 ФИЛЬТР ПО ОРГАНИЗАЦИИ ДЛЯ СКЛАДА
+    if current_user.role == "warehouse":
+        if not current_user.organization:
+            return []  # склад без организации ничего не видит
+        query = query.filter(Material.organization == current_user.organization)
 
 
     if brand:

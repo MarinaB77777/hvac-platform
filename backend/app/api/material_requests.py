@@ -1,110 +1,148 @@
-# backend/app/api/materials.py
-from fastapi import APIRouter, Depends, Query, HTTPException, status
+# app/api/material_requests.py
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from typing import List
+from app.db import get_db
 from app.services.auth import get_current_user
 from app.models.user import User
-from sqlalchemy.orm import Session
-from typing import List, Optional
-from app.db import get_db
 from app.models.material import Material
-from app.schemas.material import MaterialOut, MaterialCreate
+from app.models.material_request import MaterialRequest
+from app.schemas.material_request import MaterialRequestCreate, MaterialRequestOut
+
+router = APIRouter(prefix="/material-requests", tags=["Material Requests"])
 
 
-router = APIRouter(prefix="/materials", tags=["materials"])
-
-
-@router.post("/", response_model=MaterialOut, status_code=201)
-def create_material(
-    material: MaterialCreate,
-    db: Session = Depends(get_db),
-    current_user = Depends(get_current_user),
-):
-    # 🔒 только склад может добавлять материалы
-    if current_user.role != "warehouse":
-        raise HTTPException(status_code=403, detail="Only warehouse can add materials")
-
-    db_material = Material(
-        **material.model_dump(),
-        organization=current_user.organization  # ✅ КЛЮЧЕВО
-    )
-
-    db.add(db_material)
-    db.commit()
-    db.refresh(db_material)
-    return db_material
-
-@router.get("/", response_model=List[MaterialOut])
-def get_all_materials(
-    db: Session = Depends(get_db),
-    brand: Optional[str] = Query(None, description="Фильтр по бренду"),
-    name: Optional[str] = Query(None, description="Поиск по названию (включает подстроку)"),
-    sort_by: Optional[str] = Query(None, description="Сортировка: 'stock' или 'price'")
-
-):
-    query = db.query(Material)
-
-@router.get("/for-hvac", response_model=List[MaterialOut])
-def get_materials_for_hvac(
+# 🔹 Создать заявку на материал (HVAC)
+@router.post("/", response_model=MaterialRequestOut)
+def create_material_request(
+    request_in: MaterialRequestCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "hvac":
-        raise HTTPException(status_code=403, detail="Only HVAC")
+        raise HTTPException(status_code=403, detail="Only HVAC can create requests")
 
-    return (
-        db.query(Material)
-        .filter(Material.organization == current_user.organization)
-        .all()
-    )
-
-
-
-
-    
-    if brand:
-        query = query.filter(Material.brand == brand)
-
-    if name:
-        query = query.filter(Material.name.ilike(f"%{name}%"))
-
-
-    if sort_by == "stock":
-        query = query.order_by(Material.stock.desc())
-    elif sort_by == "price":
-        query = query.order_by(Material.price_usd.asc())
-
-    return query.all()
-
-@router.patch("/{material_id}/claim", response_model=MaterialOut)
-def claim_material_to_my_org(
-    material_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    # 1) только склад
-    if current_user.role != "warehouse":
-        raise HTTPException(status_code=403, detail="Only warehouse can claim materials")
-
-    # 2) у складского пользователя должна быть организация
-    if not current_user.organization:
-        raise HTTPException(status_code=400, detail="Warehouse user has no organization")
-
-    # 3) материал должен существовать
-    material = db.query(Material).filter(Material.id == material_id).first()
+    material = db.query(Material).filter(Material.id == request_in.material_id).first()
     if not material:
         raise HTTPException(status_code=404, detail="Material not found")
 
-    # 4) если уже привязан — не трогаем
-    if material.organization is not None and str(material.organization).strip() != "":
+    request = MaterialRequest(
+        material_id=request_in.material_id,
+        order_id=request_in.order_id,
+        hvac_id=current_user.id,
+        quantity=request_in.quantity,
+        status="pending"
+    )
+    db.add(request)
+    db.commit()
+    db.refresh(request)
+    return request
+
+
+# 🔹 Получить все заявки (warehouse)
+@router.get("/", response_model=List[MaterialRequestOut])
+def list_all_requests(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "warehouse":
+        raise HTTPException(status_code=403, detail="Only warehouse can view all requests")
+    return db.query(MaterialRequest).all()
+
+
+# 🔹 Выдать материал по заявке и обновить qty_issued
+@router.post("/{request_id}/issue", response_model=MaterialRequestOut)
+def issue_material(
+    request_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "warehouse":
+        raise HTTPException(status_code=403, detail="Only warehouse can issue materials")
+
+    request = db.query(MaterialRequest).filter(MaterialRequest.id == request_id).first()
+    if not request:
+        raise HTTPException(status_code=404, detail="Request not found")
+
+    material = db.query(Material).filter(Material.id == request.material_id).first()
+    if not material:
+        raise HTTPException(status_code=404, detail="Material not found")
+
+    # Обновить qty_issued
+    if material.qty_issued is None:
+        material.qty_issued = 0
+    material.qty_issued += request.quantity
+    request.status = "issued"
+
+    db.commit()
+    db.refresh(request)
+    return request
+
+
+# 🔹 Получить свои заявки (HVAC)
+@router.get("/my-requests", response_model=List[MaterialRequestOut])
+def get_my_requests(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "hvac":
+        raise HTTPException(status_code=403, detail="Only HVAC can view their own requests")
+
+    return db.query(MaterialRequest).filter(MaterialRequest.hvac_id == current_user.id).all()
+
+
+# 🔹 Получить заявки по конкретному заказу
+@router.get("/by-order/{order_id}", response_model=List[MaterialRequestOut])
+def get_requests_by_order(
+    order_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    allowed_roles = ["warehouse", "manager", "hvac"]
+    if current_user.role not in allowed_roles:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    query = db.query(MaterialRequest).filter(MaterialRequest.order_id == order_id)
+
+    if current_user.role == "hvac":
+        query = query.filter(MaterialRequest.hvac_id == current_user.id)
+
+    return query.all()
+
+@router.post("/for-hvac", response_model=MaterialRequestOut)
+def create_material_request_for_hvac(
+    request_in: MaterialRequestCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "hvac":
+        raise HTTPException(status_code=403, detail="Only HVAC can create requests")
+
+    material = (
+        db.query(Material)
+        .filter(
+            Material.id == request_in.material_id,
+            Material.organization == current_user.organization
+        )
+        .first()
+    )
+
+    if not material:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Material already belongs to an organization",
+            status_code=404,
+            detail="Material not found for your organization"
         )
 
-    # 5) забираем себе
-    material.organization = current_user.organization
+    request = MaterialRequest(
+        material_id=request_in.material_id,
+        order_id=request_in.order_id,
+        hvac_id=current_user.id,
+        quantity=request_in.quantity,
+        status="pending"
+    )
 
-    db.add(material)
+    db.add(request)
     db.commit()
-    db.refresh(material)
-
-    return material
+    db.refresh(request)
+    return request

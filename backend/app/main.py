@@ -14,7 +14,9 @@ from app.api import (
     hvac_api,
     material_requests,
     materials,
+    warehouse,
     orders,
+    users,
     scan,
     payment,
     )
@@ -27,8 +29,6 @@ from app.api import manager_api
 from app.api.manager_api import router as manager_issued_router
 from app.api.hvac_orders_router import router as hvac_orders_router
 from app.api import ai_chat
-
-
 
 app = FastAPI()
 

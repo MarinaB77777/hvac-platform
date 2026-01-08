@@ -65,6 +65,23 @@ def get_all_materials(
 
     return query.all()
 
+@router.get("/for-hvac", response_model=List[MaterialOut])
+def get_materials_for_hvac(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "hvac":
+        raise HTTPException(status_code=403, detail="Only HVAC can view materials")
+
+    if not current_user.organization:
+        return []
+
+    return (
+        db.query(Material)
+        .filter(Material.organization == current_user.organization)
+        .all()
+    )
+
 @router.patch("/{material_id}/claim", response_model=MaterialOut)
 def claim_material_to_my_org(
     material_id: int,

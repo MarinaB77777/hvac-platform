@@ -15,7 +15,6 @@ from app.api import (
     material_requests,
     materials,
     orders,
-    users,
     scan,
     payment,
     )

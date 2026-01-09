@@ -116,3 +116,24 @@ def claim_material_to_my_org(
     db.refresh(material)
 
     return material
+
+  # DELETE
+@router.delete("/{material_id}")
+def delete_material(
+    material_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    material = db.query(Material).filter(Material.id == material_id).first()
+
+    if not material:
+        raise HTTPException(status_code=404, detail="Material not found")
+
+    # 🔒 по желанию — ограничение прав
+    # if current_user.role not in ["manager", "admin"]:
+    #     raise HTTPException(status_code=403, detail="Not allowed")
+
+    db.delete(material)
+    db.commit()
+
+    return {"status": "ok", "deleted_id": material_id}

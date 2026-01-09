@@ -124,7 +124,6 @@ def hide_material(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # 🔒 только склад
     if current_user.role != "warehouse":
         raise HTTPException(status_code=403, detail="Only warehouse can hide materials")
 
@@ -132,11 +131,11 @@ def hide_material(
     if not material:
         raise HTTPException(status_code=404, detail="Material not found")
 
-    # 🔐 защита по организации
     if material.organization != current_user.organization:
         raise HTTPException(status_code=403, detail="Not your organization")
 
     material.status = "unavailable"
+    material.stock = 0   # ⭐ ключевой момент
 
     db.commit()
 

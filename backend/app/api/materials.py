@@ -9,7 +9,6 @@ from app.models.material import Material
 from app.schemas.material import MaterialOut, MaterialCreate
 
 router = APIRouter(prefix="/materials", tags=["materials"])
-router = APIRouter(prefix="/materials-visibility", tags=["materials-visibility"])
 
 
 @router.post("/", response_model=MaterialOut, status_code=201)

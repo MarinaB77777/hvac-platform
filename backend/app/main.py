@@ -27,7 +27,7 @@ from app.api import manager_api
 from app.api.manager_api import router as manager_issued_router
 from app.api.hvac_orders_router import router as hvac_orders_router
 from app.api import ai_chat
-from app.api import materials_visibility
+from app.api.materials_visibility import router as materials_visibility_router
 
 app = FastAPI()
 
@@ -58,7 +58,7 @@ app.include_router(hvac_orders_router)
 app.include_router(ai_chat.router)
 app.include_router(scan.router)
 app.include_router(payment.router)
-app.include_router(materials_visibility.router)
+app.include_router(materials_visibility_router)
 
 
 

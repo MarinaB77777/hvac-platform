@@ -8,8 +8,8 @@ from app.db import get_db
 from app.models.material import Material
 from app.schemas.material import MaterialOut, MaterialCreate
 
-
 router = APIRouter(prefix="/materials", tags=["materials"])
+router = APIRouter(prefix="/materials-visibility", tags=["materials-visibility"])
 
 
 @router.post("/", response_model=MaterialOut, status_code=201)
@@ -118,22 +118,30 @@ def claim_material_to_my_org(
     return material
 
   # DELETE
-@router.delete("/{material_id}")
-def delete_material(
+@router.patch("/{material_id}/hide")
+def hide_material(
     material_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    material = db.query(Material).filter(Material.id == material_id).first()
+    # 🔒 только склад
+    if current_user.role != "warehouse":
+        raise HTTPException(status_code=403, detail="Only warehouse can hide materials")
 
+    material = db.query(Material).filter(Material.id == material_id).first()
     if not material:
         raise HTTPException(status_code=404, detail="Material not found")
 
-    # 🔒 по желанию — ограничение прав
-    # if current_user.role not in ["manager", "admin"]:
-    #     raise HTTPException(status_code=403, detail="Not allowed")
+    # 🔐 защита по организации
+    if material.organization != current_user.organization:
+        raise HTTPException(status_code=403, detail="Not your organization")
 
-    db.delete(material)
+    material.status = "unavailable"
+
     db.commit()
 
-    return {"status": "ok", "deleted_id": material_id}
+    return {
+        "status": "ok",
+        "material_id": material_id,
+        "new_status": "unavailable",
+    }

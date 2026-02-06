@@ -41,12 +41,41 @@ def list_multiservices_org(
     if not current_user.organization:
         return []
 
-    return (
+    # 1) берём услуги организации
+    q = (
         db.query(MultiService)
         .filter(MultiService.organization == current_user.organization)
         .order_by(MultiService.id.asc())
-        .all()
     )
+    items = q.all()
+
+    # 2) если пусто — создаём дефолтный HVAC (1 раз)
+    if not items and current_user.role == "manager":
+        try:
+            last_id = db.query(func.max(MultiService.id)).scalar() or 0
+            code = f"multiservice-{last_id + 1:06d}"
+
+            ms = MultiService(
+                organization=current_user.organization,
+                multiservice_code=code,
+                title="HVAC",
+                details=None,
+                road_tariff=None,          # НЕ трогаем вашу текущую логику
+                diagnostic_price=None,     # сюда потом запишем DIAGNOSTIC_COST через UI
+                materials_default=None,
+                base_price=None,
+                created_by_user_id=current_user.id,
+                is_used=False,
+            )
+            db.add(ms)
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+
+        # перечитываем список
+        items = q.all()
+
+    return items
 
 
 @router.post("/", response_model=MultiServiceOut, status_code=201)

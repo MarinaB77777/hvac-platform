@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from app.api import hvac_materials
+from app.api import manager_tariffs
 from app.db import Base
 from app.api.warehouse_recognition import warehouse_recognition
 from app.api import (
@@ -60,7 +61,7 @@ app.include_router(hvac_orders_router)
 app.include_router(ai_chat.router)
 app.include_router(scan.router)
 app.include_router(payment.router)
-
+app.include_router(manager_tariffs.router)
 
 
 # 🛠 Подключение к БД

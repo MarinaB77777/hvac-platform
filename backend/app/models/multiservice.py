@@ -6,6 +6,9 @@ class MultiService(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
+    # 🔑 организация (ключевая привязка)
+    organization = Column(String, index=True, nullable=False)
+
     # уникальный код с префиксом multiservice-
     multiservice_code = Column(String, unique=True, index=True, nullable=False)
 

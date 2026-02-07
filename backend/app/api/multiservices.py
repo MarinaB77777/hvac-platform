@@ -62,7 +62,7 @@ def list_multiservices_org(
                 title="HVAC",
                 details=None,
                 road_tariff=None,          # НЕ трогаем вашу текущую логику
-                diagnostic_price=None,     # сюда потом запишем DIAGNOSTIC_COST через UI
+                diagnostic_price=200,     # сюда потом запишем DIAGNOSTIC_COST через UI
                 materials_default=None,
                 base_price=None,
                 created_by_user_id=current_user.id,

@@ -3,12 +3,35 @@ import json # 03.09.2025
 from sqlalchemy.orm import Session
 from datetime import datetime
 from app.models.order import Order, OrderStatus
-from app.models.user import User 
+from app.models.user import User
+from app.models.multiservice import MultiService
 
 def create_order(db: Session, client_id: int, data: dict):
-    distance_cost = data.get("distance_cost")
-    diagnostic_cost = data.get("diagnostic_cost", 200)  # фиксированная цена
 
+    distance_cost = data.get("distance_cost")
+
+    hvac_id = data.get("hvac_id")
+    # hvac_id у вас обязателен — но на всякий случай оставим защиту
+    if not hvac_id:
+        diagnostic_cost = 200
+    else:
+        hvac_user = db.query(User).filter(User.id == hvac_id).first()
+        organization = hvac_user.organization if hvac_user else None
+
+        ms = None
+        if organization:
+            ms = (
+                db.query(MultiService)
+                .filter(MultiService.organization == organization)
+                .filter(MultiService.title == "HVAC")
+                .order_by(MultiService.id.desc())
+                .first()
+            )
+
+        diagnostic_cost = int(ms.diagnostic_price) if (ms and ms.diagnostic_price is not None) else 200
+
+
+    
     order = Order(
         client_id=client_id,
         hvac_id=data.get("hvac_id"),

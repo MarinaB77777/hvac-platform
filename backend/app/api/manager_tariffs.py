@@ -81,10 +81,10 @@ def apply_materials_rate_for_org(
     )
 
     updated = q.update(
-        {User.rate: payload.rate},
+        {User.qualification: payload.rate},
         synchronize_session=False
     )
-
+ 
     db.commit()
 
     return {

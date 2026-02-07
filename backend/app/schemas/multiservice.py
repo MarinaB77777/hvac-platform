@@ -13,6 +13,7 @@ class MultiServiceCreate(BaseModel):
 
 class MultiServiceOut(BaseModel):
     id: int
+    organization: Optional[str] = None
     multiservice_code: str
     title: str
     details: Optional[str] = None

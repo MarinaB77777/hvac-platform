@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 
 from app.db import get_db
 from app.services.auth import get_current_user
@@ -79,7 +80,7 @@ def list_multiservices_org(
 
 
 @router.post("/", response_model=MultiServiceOut, status_code=201)
-def create_multiservice(
+def upsert_multiservice(
     payload: MultiServiceCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -90,16 +91,51 @@ def create_multiservice(
     if not current_user.organization:
         raise HTTPException(status_code=400, detail="Manager has no organization")
 
+    title = (payload.title or "").strip()
+    if not title:
+        raise HTTPException(status_code=400, detail="Title is required")
+
+    # 1) Ищем существующую услугу в ЭТОЙ организации по title (без учета регистра)
+    existing = (
+        db.query(MultiService)
+        .filter(MultiService.organization == current_user.organization)
+        .filter(func.lower(MultiService.title) == func.lower(title))
+        .first()
+    )
+
+    # 2) Если нашли — ОБНОВЛЯЕМ только те поля, которые реально пришли (не None)
+    if existing:
+        if payload.details is not None:
+            existing.details = payload.details.strip() if payload.details else None
+
+        if payload.road_tariff is not None:
+            existing.road_tariff = payload.road_tariff
+
+        if payload.diagnostic_price is not None:
+            existing.diagnostic_price = payload.diagnostic_price
+
+        if payload.materials_default is not None:
+            existing.materials_default = payload.materials_default
+
+        if payload.base_price is not None:
+            existing.base_price = payload.base_price
+
+        existing.created_by_user_id = existing.created_by_user_id or current_user.id
+
+        db.commit()
+        db.refresh(existing)
+        return existing
+
+    # 3) Если НЕ нашли — создаём новую запись (как раньше)
     last_id = db.query(func.max(MultiService.id)).scalar() or 0
     code = f"multiservice-{last_id + 1:06d}"
 
     ms = MultiService(
-        organization=current_user.organization,  # ✅ ключевое
+        organization=current_user.organization,
         multiservice_code=code,
-        title=payload.title.strip(),
+        title=title,
         details=(payload.details.strip() if payload.details else None),
 
-        # тарифы/цены
         road_tariff=payload.road_tariff,
         diagnostic_price=payload.diagnostic_price,
         materials_default=payload.materials_default,
@@ -110,7 +146,13 @@ def create_multiservice(
     )
 
     db.add(ms)
-    db.commit()
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="MultiService already exists")
+
     db.refresh(ms)
     return ms
 

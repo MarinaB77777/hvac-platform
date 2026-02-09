@@ -25,6 +25,7 @@ from app.models import material_usage
 from app.models.material_usage import MaterialUsage
 from app.models.multiservice import MultiService
 from app.api import material_usage
+from app.api.personal_materials import router as personal_materials_router
 from app.api import manager_api
 from app.api import multiservices
 from app.api.manager_api import router as manager_issued_router
@@ -57,6 +58,7 @@ app.include_router(hvac_materials.router)
 app.include_router(orders.router)
 app.include_router(material_usage.router)
 app.include_router(warehouse_recognition.router)
+app.include_router(personal_materials_router)
 app.include_router(hvac_orders_router)
 app.include_router(ai_chat.router)
 app.include_router(scan.router)

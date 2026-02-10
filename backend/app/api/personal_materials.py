@@ -4,20 +4,19 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 from app.services.auth import get_current_user
 from app.models.material import Material
+from app.models.user import User
 from app.services.personal_org import personal_org
 
 router = APIRouter(prefix="/personal/materials", tags=["personal-warehouse"])
 
 
-def resolve_hvac_id(user: dict, hvac_id_query: int | None):
-    role = user.get("role")
-    uid = user.get("id")
+def resolve_hvac_id(current_user: User, hvac_id_query: int | None):
+    role = current_user.role
+    uid = current_user.id
 
-    # HVAC без организации -> свой склад
     if role == "hvac":
         return uid
 
-    # "Лазейка" для warehouse: может смотреть/создавать для конкретного HVAC
     if role == "warehouse":
         if not hvac_id_query:
             raise HTTPException(status_code=400, detail="hvac_id is required for warehouse")
@@ -29,29 +28,28 @@ def resolve_hvac_id(user: dict, hvac_id_query: int | None):
 @router.get("/")
 def list_personal_materials(
     hvac_id: int | None = None,
-    user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    hvac_id_final = resolve_hvac_id(user, hvac_id)
+    hvac_id_final = resolve_hvac_id(current_user, hvac_id)
     org = personal_org(hvac_id_final)
 
-    items = (
+    return (
         db.query(Material)
         .filter(Material.organization == org)
         .order_by(Material.id.desc())
         .all()
     )
-    return items
 
 
 @router.post("/")
 def create_personal_material(
     payload: dict,
     hvac_id: int | None = None,
-    user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    hvac_id_final = resolve_hvac_id(user, hvac_id)
+    hvac_id_final = resolve_hvac_id(current_user, hvac_id)
     org = personal_org(hvac_id_final)
 
     name = (payload.get("name") or "").strip()
@@ -70,7 +68,7 @@ def create_personal_material(
         arrival_date=payload.get("arrival_date"),
         status=payload.get("status"),
         organization=org,
-        issued_to_hvac=hvac_id_final,  # можно хранить для удобства, не обязательно
+        issued_to_hvac=hvac_id_final,
     )
 
     db.add(m)
@@ -84,10 +82,10 @@ def update_personal_material(
     material_id: int,
     payload: dict,
     hvac_id: int | None = None,
-    user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    hvac_id_final = resolve_hvac_id(user, hvac_id)
+    hvac_id_final = resolve_hvac_id(current_user, hvac_id)
     org = personal_org(hvac_id_final)
 
     m = (
@@ -120,10 +118,10 @@ def update_personal_material(
 def delete_personal_material(
     material_id: int,
     hvac_id: int | None = None,
-    user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    hvac_id_final = resolve_hvac_id(user, hvac_id)
+    hvac_id_final = resolve_hvac_id(current_user, hvac_id)
     org = personal_org(hvac_id_final)
 
     m = (

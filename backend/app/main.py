@@ -29,6 +29,7 @@ from app.api.personal_materials import router as personal_materials_router
 from app.api import manager_api
 from app.api import multiservices
 from app.api.personal_multiservices import router as personal_multiservices_router
+from app.api.public_hvac_tariffs import router as public_hvac_tariffs_router
 from app.api.manager_api import router as manager_issued_router
 from app.api.hvac_orders_router import router as hvac_orders_router
 from app.api import ai_chat
@@ -66,6 +67,7 @@ app.include_router(scan.router)
 app.include_router(payment.router)
 app.include_router(manager_tariffs.router)
 app.include_router(personal_multiservices_router)
+app.include_router(public_hvac_tariffs_router)
 
 
 # 🛠 Подключение к БД

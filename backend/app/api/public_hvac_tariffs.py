@@ -33,7 +33,7 @@ def get_tariffs_by_hvac_id(
     ms = (
         db.query(MultiService)
         .filter(MultiService.organization == org)
-        .filter(func.lower(MultiService.title) == "hvac")
+        .filter(func.lower(func.trim(MultiService.title)) == "hvac")
         .first()
     )
 

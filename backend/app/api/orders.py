@@ -30,22 +30,39 @@ router = APIRouter()
 def create(order_data: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return create_order(db, current_user.id, order_data)
 
+@router.get("/orders/client")
+def get_orders_for_client(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.role != "client":
+        raise HTTPException(status_code=403, detail="Only clients can access this.")
+    return db.query(Order).filter(Order.client_id == current_user.id).all()
+
+@router.get("/orders/available")
+def available(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return list_available_orders(db)
+
+@router.get("/orders/assigned")
+def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.role != "hvac":
+        raise HTTPException(status_code=403, detail="Only HVACs can access this.")
+
+    print(f"🛠️ HVAC #{current_user.id} запрашивает свои заказы")
+
+    return db.query(Order).filter(
+        Order.status == OrderStatus.new,
+        Order.hvac_id == current_user.id
+    ).all()
+
+@router.get("/orders/me")
+def mine(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return get_orders_for_hvac(db, current_user.id) 
+
 @router.get("/orders/{order_id}")
 def get(order_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     order = get_order_by_id(db, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     return order
-    
-@router.get("/orders/client")
-def get_orders_for_client(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if current_user.role != "client":
-        raise HTTPException(status_code=403, detail="Only clients can access this.")
-    return db.query(Order).filter(Order.client_id == current_user.id).all()
-    
-@router.get("/orders/available")
-def available(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return list_available_orders(db)
+
 
 @router.post("/orders/{order_id}/accept")
 def accept(order_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -55,9 +72,6 @@ def accept(order_id: int, db: Session = Depends(get_db), current_user: User = De
 def complete(order_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return complete_order(db, current_user.id, order_id)
 
-@router.get("/orders/me")
-def mine(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return get_orders_for_hvac(db, current_user.id)
 
 @router.get("/active-for-manager")
 def active_orders_for_manager(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -222,43 +236,4 @@ def update_order(order_id: int, data: dict, db: Session = Depends(get_db), user=
     return {"status": "ok", "updated_order": {
         field: getattr(order, field) for field in allowed_fields
     }}
-
-@router.get("/orders/assigned")
-def assigned_orders(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    if current_user.role != "hvac":
-        raise HTTPException(status_code=403, detail="Only HVACs can access this.")
-
-    print(f"🛠️ HVAC #{current_user.id} запрашивает свои заказы")
-
-    return db.query(Order).filter(
-        Order.status == OrderStatus.new,
-        Order.hvac_id == current_user.id
-    ).all()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -1,36 +1,40 @@
 # hvac-platform/backend/app/services/order_service.py
 import json # 03.09.2025
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from datetime import datetime
 from app.models.order import Order, OrderStatus
 from app.models.user import User
 from app.models.multiservice import MultiService
+from app.services.personal_org import personal_org
 
 def create_order(db: Session, client_id: int, data: dict):
 
     distance_cost = data.get("distance_cost")
 
     hvac_id = data.get("hvac_id")
-    # hvac_id у вас обязателен — но на всякий случай оставим защиту
+
+    DEFAULT_DIAGNOSTIC = 200
+
     if not hvac_id:
-        diagnostic_cost = 200
+        diagnostic_cost = DEFAULT_DIAGNOSTIC
     else:
         hvac_user = db.query(User).filter(User.id == hvac_id).first()
-        organization = hvac_user.organization if hvac_user else None
+        if not hvac_user:
+            diagnostic_cost = DEFAULT_DIAGNOSTIC
+        else:
+            # ✅ одна логика для орг и personal:
+            org = hvac_user.organization if hvac_user.organization else personal_org(hvac_id)
 
-        ms = None
-        if organization:
             ms = (
                 db.query(MultiService)
-                .filter(MultiService.organization == organization)
-                .filter(MultiService.title == "HVAC")
+                .filter(MultiService.organization == org)
+                .filter(func.lower(func.trim(MultiService.title)) == "hvac")
                 .order_by(MultiService.id.desc())
                 .first()
             )
 
-        diagnostic_cost = int(ms.diagnostic_price) if (ms and ms.diagnostic_price is not None) else 200
-
-
+            diagnostic_cost = int(ms.diagnostic_price) if (ms and ms.diagnostic_price is not None) else DEFAULT_DIAGNOSTIC
     
     order = Order(
         client_id=client_id,
@@ -133,7 +137,7 @@ def upload_diagnostic_file(db: Session, hvac_id: int, order_id: int, url: str):
     order = db.query(Order).filter(Order.id == order_id, Order.hvac_id == hvac_id).first()
     if not order:
         return None
-    order.diagnostic_file_url = url
+    order.diagnostic_url = url
     db.commit()
     return order
     

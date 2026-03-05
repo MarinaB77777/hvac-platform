@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from app.api import hvac_materials
 from app.api import manager_tariffs
+from app.api import system_notifications
 from app.db import Base
 from app.api.warehouse_recognition import warehouse_recognition
 from app.api import (
@@ -24,6 +25,7 @@ from app.models.material_request import MaterialRequest
 from app.models import material_usage
 from app.models.material_usage import MaterialUsage
 from app.models.multiservice import MultiService
+from app.models.system_notification import SystemNotification
 from app.api import material_usage
 from app.api.personal_materials import router as personal_materials_router
 from app.api import manager_api
@@ -62,6 +64,7 @@ app.include_router(material_usage.router)
 app.include_router(warehouse_recognition.router)
 app.include_router(personal_materials_router)
 app.include_router(hvac_orders_router)
+app.include_router(system_notifications.router)
 app.include_router(ai_chat.router)
 app.include_router(scan.router)
 app.include_router(payment.router)

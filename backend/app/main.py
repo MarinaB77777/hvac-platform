@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from app.api import hvac_materials
 from app.api import manager_tariffs
 from app.api import system_notification
+from app.api import free_orders
 from app.db import Base
 from app.api.warehouse_recognition import warehouse_recognition
 from app.api import (
@@ -65,6 +66,7 @@ app.include_router(warehouse_recognition.router)
 app.include_router(personal_materials_router)
 app.include_router(hvac_orders_router)
 app.include_router(system_notification.router)
+app.include_router(free_orders.router)
 app.include_router(ai_chat.router)
 app.include_router(scan.router)
 app.include_router(payment.router)

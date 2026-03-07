@@ -6,6 +6,7 @@ from datetime import datetime
 from app.db import get_db
 from app.models.order import Order, OrderStatus
 from app.services.auth import get_current_user
+from app.schemas.free_order import FreeOrderCreate
 
 router = APIRouter(prefix="/free-orders", tags=["Free Orders"])
 
@@ -45,7 +46,48 @@ def list_free_orders(db: Session = Depends(get_db), user=Depends(get_current_use
         for o in orders
     ]
 
+@router.post("/")
+def create_free_order(
+    payload: FreeOrderCreate,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    order = Order(
+        client_id=int(user.id),
+        hvac_id=None,
+        status=OrderStatus.new,
+        address=payload.address,
+        lat=payload.lat,
+        lng=payload.lng,
+        description=payload.description,
+        payment_type=payload.payment_type,
+        currency=payload.currency or "USD",
+        client_datetime=payload.client_datetime,
+        diagnostic_cost=None,
+        distance_cost=None,
+        parts_cost=None,
+        repair_cost=None,
+        agreed_total_mxn=None,
+    )
 
+    db.add(order)
+    db.commit()
+    db.refresh(order)
+
+    return {
+        "id": order.id,
+        "status": order.status,
+        "client_id": order.client_id,
+        "hvac_id": order.hvac_id,
+        "address": order.address,
+        "lat": order.lat,
+        "lng": order.lng,
+        "description": order.description,
+        "payment_type": order.payment_type,
+        "currency": order.currency,
+        "client_datetime": order.client_datetime,
+        "created_at": order.created_at,
+    }
 @router.post("/{order_id}/accept")
 def accept_free_order(order_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
     require_hvac(user)

@@ -50,7 +50,28 @@ def get_my_notifications(
         .order_by(SystemNotification.created_at.desc())
         .all()
     )
+@router.post("/client-agreed")
+def notify_client_agreed(
+    data: SystemNotificationCreate,
+    db: Session = Depends(get_db),
+):
+    order = db.query(Order).filter(Order.id == data.order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
 
+    notification = SystemNotification(
+        user_id=order.client_id,
+        order_id=order.id,
+        type="client_agreed",
+        title="Agreement recorded",
+        body="Your agreement to the repair amount has been recorded.",
+    )
+
+    db.add(notification)
+    db.commit()
+    db.refresh(notification)
+
+    return {"status": "notification_sent", "notification_id": notification.id}
 
 @router.post("/{notification_id}/read")
 def mark_notification_read(

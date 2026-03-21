@@ -7,7 +7,11 @@ from app.db import get_db
 from app.services.auth import get_current_user
 from app.models.user import User
 from app.models.manager_task import ManagerTask
-from app.schemas.manager_task import ManagerTaskCreate, ManagerTaskOut
+from app.schemas.manager_task import (
+    ManagerTaskCreate,
+    ManagerTaskHvacUpdate,
+    ManagerTaskOut,
+)
 
 router = APIRouter(prefix="/manager-tasks", tags=["manager_tasks"])
 
@@ -109,4 +113,37 @@ def create_manager_task(
     db.commit()
     db.refresh(task)
 
+    return task
+
+# =========================================================
+# ✅ HVAC: update own task (report files / comment / missing items)
+# =========================================================
+@router.patch("/{task_id}/hvac", response_model=ManagerTaskOut)
+def update_my_task(
+    task_id: int,
+    payload: ManagerTaskHvacUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "hvac":
+        raise HTTPException(status_code=403, detail="Only HVAC can update own tasks")
+
+    task = db.query(ManagerTask).filter(ManagerTask.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    if task.hvac_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your task")
+
+    if payload.result_files is not None:
+        task.result_files = payload.result_files
+
+    if payload.hvac_comment is not None:
+        task.hvac_comment = payload.hvac_comment.strip() if payload.hvac_comment else None
+
+    if payload.materials_note is not None:
+        task.materials_note = payload.materials_note.strip() if payload.materials_note else None
+
+    db.commit()
+    db.refresh(task)
     return task

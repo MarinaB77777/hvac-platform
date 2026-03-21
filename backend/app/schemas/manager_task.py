@@ -10,6 +10,10 @@ class ManagerTaskCreate(BaseModel):
     due_datetime: Optional[datetime] = None
     materials_note: Optional[str] = None
 
+class ManagerTaskHvacUpdate(BaseModel):
+    result_files: Optional[str] = None
+    hvac_comment: Optional[str] = None
+    materials_note: Optional[str] = None
 
 class ManagerTaskOut(BaseModel):
     id: int

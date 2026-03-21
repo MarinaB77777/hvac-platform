@@ -37,6 +37,7 @@ from app.api.personal_multiservices import router as personal_multiservices_rout
 from app.api.public_hvac_tariffs import router as public_hvac_tariffs_router
 from app.api.manager_api import router as manager_issued_router
 from app.models.manager_task import ManagerTask
+from app.models.manager_task_report import ManagerTaskReport
 from app.api.hvac_orders_router import router as hvac_orders_router
 from app.api import ai_chat
 

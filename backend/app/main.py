@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from app.api import hvac_materials
 from app.api import manager_tariffs
 from app.api import manager_tasks
+from app.api import manager_task_reports
 from app.api import system_notification
 from app.api import free_orders
 from app.db import Base
@@ -57,6 +58,7 @@ app.include_router(user_api.router)
 app.include_router(client_api.router)
 app.include_router(manager_api.router)
 app.include_router(manager_tasks.router)
+app.include_router(manager_task_reports.router)
 app.include_router(multiservices.router)
 app.include_router(warehouse_api.router)
 app.include_router(hvac_api.router)

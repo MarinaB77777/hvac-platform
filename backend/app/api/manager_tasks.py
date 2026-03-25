@@ -10,6 +10,7 @@ from app.models.manager_task import ManagerTask
 from app.schemas.manager_task import (
     ManagerTaskCreate,
     ManagerTaskHvacUpdate,
+    ManagerTaskManagerUpdate,
     ManagerTaskOut,
 )
 
@@ -143,6 +144,39 @@ def update_my_task(
 
     if payload.materials_note is not None:
         task.materials_note = payload.materials_note.strip() if payload.materials_note else None
+
+    db.commit()
+    db.refresh(task)
+    return task
+
+
+# =========================================================
+# ✅ MANAGER: review task and update final status
+# =========================================================
+@router.patch("/{task_id}/manager", response_model=ManagerTaskOut)
+def update_task_by_manager(
+    task_id: int,
+    payload: ManagerTaskManagerUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "manager":
+        raise HTTPException(status_code=403, detail="Only manager can update tasks")
+
+    task = db.query(ManagerTask).filter(ManagerTask.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    if task.organization != current_user.organization:
+        raise HTTPException(status_code=403, detail="Not your organization")
+
+    if payload.status not in ["done", "needs_rework"]:
+        raise HTTPException(status_code=400, detail="Invalid status")
+
+    task.status = payload.status
+
+    if payload.manager_comment is not None:
+        task.manager_comment = payload.manager_comment.strip() if payload.manager_comment else None
 
     db.commit()
     db.refresh(task)

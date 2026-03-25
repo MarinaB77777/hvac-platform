@@ -15,6 +15,10 @@ class ManagerTaskHvacUpdate(BaseModel):
     hvac_comment: Optional[str] = None
     materials_note: Optional[str] = None
 
+class ManagerTaskManagerUpdate(BaseModel):
+    status: str
+    manager_comment: Optional[str] = None
+
 class ManagerTaskOut(BaseModel):
     id: int
     organization: Optional[str] = None

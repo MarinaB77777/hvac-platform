@@ -71,6 +71,28 @@ def list_tasks_by_hvac(
 
 
 # =========================================================
+# ✅ MANAGER: все задачи своей организации
+# =========================================================
+@router.get("/", response_model=list[ManagerTaskOut])
+def list_all_tasks_for_manager(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != "manager":
+        raise HTTPException(status_code=403, detail="Only manager can view tasks")
+
+    if not current_user.organization:
+        return []
+
+    return (
+        db.query(ManagerTask)
+        .filter(ManagerTask.organization == current_user.organization)
+        .order_by(ManagerTask.id.desc())
+        .all()
+    )
+    
+
+# =========================================================
 # ✅ MANAGER: создать задачу
 # =========================================================
 @router.post("/", response_model=ManagerTaskOut, status_code=201)
